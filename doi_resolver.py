@@ -24,6 +24,20 @@ def valid_doi(doi):
     return r.status_code != 404
 
 
+def crossref_url_search(url):
+    r = requests.get("https://api.eventdata.crossref.org/v1/events?rows=1&obj.url=" + url)
+    if r.status_code == 200:
+        json_response = r.json()
+        if 'status' in json_response:
+            if json_response['status'] == 'ok':
+                # print(json_response)
+                if 'message' in json_response:
+                    if 'events' in json_response['message']:
+                        for event in json_response['message']['events']:
+                            return event['obj_id']
+    return False
+
+
 def get_potential_dois_from_text(text):
     doi_re = re.compile("(10\\.\\d{4,9}(?:/|%2F|%2f)[^\\s]+)")
     last_slash = re.compile("^(10\\.\\d+/.*)/.*$")
@@ -123,6 +137,7 @@ def link_url(url):
         cached_doi[url] = doi
         return doi
 
+    # optimize, lxml
     r = get_response(url)
     soup = get_soup(r)
 
@@ -132,6 +147,13 @@ def link_url(url):
         print('meta')
         cached_doi[url] = doi
         return doi
+
+    # crossref
+    doi = crossref_url_search(url)
+    # if doi:
+    #     print('crossref')
+    #     cached_doi[url] = doi
+    #     return doi
 
     # fulltext
     doi = check_doi_list(search_fulltext(r))
