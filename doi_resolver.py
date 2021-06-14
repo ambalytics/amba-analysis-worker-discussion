@@ -1,29 +1,31 @@
+import json
 import re
 import requests
-from bs4 import BeautifulSoup
+import time
+from lxml import html
 
 # todo real cache
+from requests import Session
+
 cached_doi = {}
 
-# api check https://api.eventdata.crossref.org/v1/events?rows=1&source=twitter&obj.url=https://www.medrxiv.org/content/10.1101/2021.06.01.21258176v2 # 15 per second max
-
-def check_doi_list(potential_dois):
+def check_doi_list_valid(potential_dois):
+    pdoi = ''
     for doi in potential_dois:
-        if doi is not None:
-            if valid_doi(doi):
-                return doi
-
-    return False
-
-
-def valid_doi(doi):
-    pre = "http://doi.org/"
-    r = requests.get(pre + doi)
-    # print(pre + doi)
-    # print(r.status_code)
-    return r.status_code != 404
+        if doi is not None and doi:
+            pdoi = pdoi + doi + ','
+    pre = "http://doi.org/doiRA/"
+    rw = False
+    if pdoi != '':
+        r = requests.get(pre + pdoi)
+        json_response = r.json()
+        for j in json_response:
+            if 'RA' in j:
+                rw = j['DOI']
+    return rw
 
 
+#/2.4 Case sensitivity
 def crossref_url_search(url):
     r = requests.get("https://api.eventdata.crossref.org/v1/events?rows=1&obj.url=" + url)
     if r.status_code == 200:
@@ -36,7 +38,6 @@ def crossref_url_search(url):
                         for event in json_response['message']['events']:
                             return event['obj_id']
     return False
-
 
 def get_potential_dois_from_text(text):
     doi_re = re.compile("(10\\.\\d{4,9}(?:/|%2F|%2f)[^\\s]+)")
@@ -82,78 +83,80 @@ def find_all(a_str, sub):
         start += len(sub)
 
 
-def get_response(url):
+def get_response(url, s):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
         'Pragma': 'no-cache'
     }
-    return requests.get(url, headers=headers)
+    s.headers.update(headers)
+    return s.get(url)
 
 
 def search_fulltext(r):
     return get_potential_dois_from_text(r.text)
 
 
-def get_soup(r):
-    return BeautifulSoup(r.content, features="html.parser")
-
-
-def get_title(soup):
-    return soup.title.string
-
-
-def get_potential_dois_from_meta(soup):
-    meta = soup.find_all('meta')
+def get_lxml(page):
+    content = html.fromstring(page.content)
     result = set([])
-    for tag in meta:
-        if 'name' in tag.attrs.keys() and tag.attrs['name'].strip().lower() in ['citation_doi', 'dc.identifier',
-                                                                                'evt-doipage']:
-            # print('doi :', tag.attrs['content'])
-            result.add(tag.attrs['content'])
+    for meta in content.xpath('//html//head//meta'):
+        for name, value in sorted(meta.items()):
+            # print(name)
+            if value.strip().lower() in ['citation_doi', 'dc.identifier', 'evt-doipage']:
+                # print(meta.get('content'))
+                result.add(meta.get('content'))
     return result
 
 
-def get_filtered_dois_from_meta(soup):
-    potential_dois = get_potential_dois_from_meta(soup)
+def get_filtered_dois_from_meta(potential_dois):
     result = set([])
     for t in potential_dois:
         result.add(t.replace('doi:', ''))
 
-    return result
+    doi_re = re.compile("(10\\.\\d{4,9}(?:/|%2F|%2f)[^\\s]+)")
 
+    r = set([])
+    for t in result:
+        if doi_re.search(t) is not None:
+            r.add(t)
+    return r
+
+#/html/head/meta[1]
+# /html/head[meta[@citation_doi="]
 def link_url(url):
-    #print(url)
-
+    print(url)
+    # crossref_url_search(url)
     # cache
-    doi = cached_doi.get(url)
-    if doi:
-        print('chache')
-        return doi
+    # doi = cached_doi.get(url)
+    # if doi:
+    #     print('chache')
+    #     return doi
 
     # url
-    doi = check_doi_list(get_potential_dois_from_text(url))
+    doi = check_doi_list_valid(get_potential_dois_from_text(url))
     if doi:
         print('url')
         cached_doi[url] = doi
         return doi
 
-    # optimize, lxml
-    r = get_response(url)
-    soup = get_soup(r)
+    s = Session()
+    r = get_response(url, s)
 
     # meta
-    doi = check_doi_list(get_filtered_dois_from_meta(soup))
-    if doi:
+    pot_doi = get_lxml(r)
+    doi = check_doi_list_valid(get_filtered_dois_from_meta(pot_doi))
+    if doi and doi != set([]):
         print('meta')
         cached_doi[url] = doi
         return doi
 
+
     # crossref
     doi = crossref_url_search(url)
-    # if doi:
-    #     print('crossref')
-    #     cached_doi[url] = doi
-    #     return doi
+    if doi:
+        print('crossref')
+        cached_doi[url] = doi
+        return doi
 
     # fulltext
     doi = check_doi_list(search_fulltext(r))
@@ -202,5 +205,11 @@ if __name__ == '__main__':
                 "https://academic.oup.com/glycob/advance-article-abstract/doi/10.1093/glycob/cwab035/6274761#.YKKxIEAvSvs.twitter",
                 "https://www.jmcc-online.com/article/S0022-2828(21)00101-2/fulltext"
     ]
+
+    start = time.time()
+    r = set([])
     for url in urls:
-        print(link_url(url))
+        r.add(link_url(url))
+        # print(link_url(url))
+    # print(sorted(r))
+    print("total link: " + str(time.time() - start))

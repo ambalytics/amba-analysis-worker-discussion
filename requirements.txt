@@ -1,2 +1,3 @@
-RUN apt-get install -y libxslt1-dev
 pip install lxml
+pip install kafka
+pip install pymongo

@@ -41,10 +41,10 @@ def find_doi(urls):
     return 'doi'
 
 
-if __name__ == '__main__':
+def startWorker():
     print('Running Consumer..')
 
-    consumer = KafkaConsumer(topic_name, group_id='sb',
+    consumer = KafkaConsumer(topic_name, group_id='worker',
                              bootstrap_servers=['localhost:9092'], api_version=(0, 10), consumer_timeout_ms=1000)
 
     mongoClient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -101,3 +101,6 @@ if __name__ == '__main__':
     #     producer = connect_kafka_producer()
     #     for rec in parsed_records:
     #         publish_message(producer, parsed_topic_name, 'parsed', rec)
+
+if __name__ == '__main__':
+    startWorker()
