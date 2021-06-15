@@ -121,16 +121,14 @@ def get_filtered_dois_from_meta(potential_dois):
             r.add(t)
     return r
 
-#/html/head/meta[1]
-# /html/head[meta[@citation_doi="]
 def link_url(url):
     print(url)
-    # crossref_url_search(url)
-    # cache
-    # doi = cached_doi.get(url)
-    # if doi:
-    #     print('chache')
-    #     return doi
+
+    # cache todo
+    doi = cached_doi.get(url)
+    if doi:
+        print('chache')
+        return doi
 
     # url
     doi = check_doi_list_valid(get_potential_dois_from_text(url))
@@ -159,7 +157,7 @@ def link_url(url):
         return doi
 
     # fulltext
-    doi = check_doi_list(search_fulltext(r))
+    doi = check_doi_list_valid(search_fulltext(r))
     if doi:
         print('fulltext')
         cached_doi[url] = doi
