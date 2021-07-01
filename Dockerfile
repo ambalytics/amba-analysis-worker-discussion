@@ -3,12 +3,9 @@ FROM python:3.5
 WORKDIR /src
 COPY . .
 
-
 RUN pip install --upgrade pip
 
-# todo requirements.txt
-RUN pip install lxml && \
-    pip install kafka && \
-    pip install requests
+COPY src/requirements.txt /requirements.txt
+RUN pip install -r src/requirements.txt
 
 CMD [ "python", "./src/twitter_supervisor.py" ]

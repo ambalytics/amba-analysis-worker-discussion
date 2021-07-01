@@ -1,3 +1,5 @@
-pip install lxml
-pip install kafka
-pip install pymongo
+lxml
+kafka
+pymongo
+ruamel.yaml
+requests
