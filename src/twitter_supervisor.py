@@ -1,4 +1,5 @@
 import signal
+import time
 from multiprocessing import Process
 import twitter_worker
 
@@ -29,6 +30,7 @@ class Supervisor:
 
 
 if __name__ == "__main__":
+    time.sleep(10)
     supervisor = Supervisor()
     supervisor.main()
     number_worker = 5  # same as partitions
