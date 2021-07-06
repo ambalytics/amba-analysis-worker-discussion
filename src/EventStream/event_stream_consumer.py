@@ -36,6 +36,7 @@ class EventStreamConsumer(EventStreamBase):
     log = "EventStreamConsumer " + str(id) + " "
 
     def get_consumer(self):
+        logging.warning(self.log + "rt: %s" % self.relation_type)
         if not self.topic_name:
             self.topic_name = self.get_topic_name(state=self.state, relation_type=self.relation_type)
         # self.topic_name = 'tweets'

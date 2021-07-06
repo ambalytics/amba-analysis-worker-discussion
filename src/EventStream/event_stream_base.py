@@ -39,15 +39,15 @@ class EventStreamBase(object):
 
     config_states = {
         'raw': {
-            'own_topic': ['discussed', 'crossref']
+            'own_topic': ['discusses', 'crossref']
         },
         'linked': {
-            'own_topic': ['discussed']
+            'own_topic': ['discusses']
         },
         'unknown': {
         },
         'processed': {
-            'own_topic': ['discussed']
+            'own_topic': ['discusses']
         },
         'aggregated': {
         }}
@@ -81,6 +81,19 @@ class EventStreamBase(object):
         if relation_type != '':
             result = result + self.relation_type_separator + relation_type
         return result
+
+
+    def get_topic_name_event(self, event):
+        state = event.get('state')
+        relation_type = event.get('relation_type')
+        result = self.event_string + self.state_separator + state
+
+        # if a relation type is set and has is own topic
+        logging.warning('rt %s, c %s' %(relation_type, self.config_states[state]['own_topic']))
+        if relation_type != '' and relation_type in self.config_states[state]['own_topic']:
+            result = result + self.relation_type_separator + relation_type
+        return result
+
 
     def get_topic_name(self, state, relation_type=''):
         result = self.event_string + self.state_separator + state
