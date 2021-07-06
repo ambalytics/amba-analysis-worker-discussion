@@ -1,7 +1,8 @@
 import signal
 import time
 from multiprocessing import Process
-import twitter_worker
+
+from twitter_worker import TwitterWorker
 
 import logging
 
@@ -30,17 +31,26 @@ class Supervisor:
 
 
 if __name__ == "__main__":
-    time.sleep(10)
-    supervisor = Supervisor()
-    supervisor.main()
-    number_worker = 5  # same as partitions
-    total_workers = 0
+    # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+    logging.warning('start twitter worker')
+    time.sleep(15)
+    logging.warning('connect')
 
-    while supervisor.running:
-        while len([w for w in supervisor.workers if w.is_alive()]) <= number_worker:
-            total_workers += 1
-            logging.warning("Main    : create and start thread %d.", total_workers)
-            worker = Process(target=twitter_worker.start_worker, args=(total_workers,), daemon=True)
-            worker.start()
-            supervisor.workers.append(worker)
+    e = TwitterWorker(1)
+    # e.get_publication_info("10.1109/5.7710731")
+    e.consume()
+
+
+    # supervisor = Supervisor()
+    # supervisor.main()
+    # number_worker = 5  # same as partitions
+    # total_workers = 0
+    #
+    # while supervisor.running:
+    #     while len([w for w in supervisor.workers if w.is_alive()]) <= number_worker:
+    #         total_workers += 1
+    #         logging.warning("Main    : create and start thread %d.", total_workers)
+    #         worker = Process(target=TwitterWorker.start_worker, args=(total_workers,), daemon=True)
+    #         worker.start()
+    #         supervisor.workers.append(worker)
 

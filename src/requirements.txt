@@ -1,5 +1,5 @@
 lxml
 kafka
-pymongo
-ruamel.yaml
+# pymongo
+# ruamel.yaml
 requests

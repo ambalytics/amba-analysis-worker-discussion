@@ -1,8 +1,9 @@
-import json
 import logging
 import doi_resolver
+from gql import gql, Client
+from gql.transport.aiohttp import AIOHTTPTransport
 
-from event_stream_consumer import EventStreamConsumer
+from EventStream.event_stream_consumer import EventStreamConsumer
 
 
 def url_doi_check(data):
@@ -23,14 +24,17 @@ def url_doi_check(data):
 class TwitterWorker(EventStreamConsumer):
     state = "raw"
     relation_type = "discussed"
+    publication_client = False
+    log = "TwitterWorker "
+
 
     def on_message(self, json_msg):
-        print('hello')
-        print(json_msg)
+        # print('hello')
+        # print(json_msg)
+        logging.warning(self.log + "on message twitter consumer")
 
-        worker_id = 1
         if 'id' in json_msg['data']:
-            logging.warning(str(worker_id) + " " + json_msg['data']['id'])
+            logging.warning(self.log + json_msg['data']['id'])
 
             # we use the id for mongo
             json_msg['data']['_id'] = json_msg['data'].pop('id')
@@ -42,7 +46,7 @@ class TwitterWorker(EventStreamConsumer):
             logging.warning('doi 1 ' + str(doi))
             if doi is not False:
                 json_msg['data']['doi'] = doi
-                logging.warning(str(worker_id) + " " + json_msg['data']['_id'] + " doi self")
+                logging.warning(self.log + json_msg['data']['_id'] + " doi self")
                 # publish_message(producer, parsed_topic_name, 'parsed',
                 #                 json.dumps(json_msg['data'], indent=2).encode('utf-8'))
                 # check the includes object for the original tweet url
@@ -53,15 +57,58 @@ class TwitterWorker(EventStreamConsumer):
                     logging.warning('doi 2 ' + str(doi))
                     if doi is not False:
                         # use first doi we get
-                        logging.warning(str(worker_id) + " " + json_msg['data']['_id'] + " doi includes")
+                        logging.warning(self.log + json_msg['data']['_id'] + " doi includes")
                         json_msg['data']['doi'] = doi
-                        # publish_message(producer, parsed_topic_name, 'parsed',
-                        #                 json.dumps(json_msg['data'], indent=2).encode('utf-8'))
+                        publication = self.get_publication_info(doi)
+                        if not publication:
+                            json_msg['publication'] = publication
+                            logging.warning(self.log + "linked publication")
+                            # publish_message(producer, parsed_topic_name, 'parsed',
+                            #                 json.dumps(json_msg['data'], indent=2).encode('utf-8'))
                         break
             else:
-                logging.warning(str(worker_id) + " " + json_msg['data']['id'] + " no doi")
+                logging.warning(self.log + json_msg['data']['_id'] + " no doi")
                 # no_link.insert_one(json_msg['data'])
 
+    def prepare_publication_connection(self):
+        url = "https://api.ambalytics.cloud/entities"
+        transport = AIOHTTPTransport(url=url)
+        self.publication_client = Client(transport=transport, fetch_schema_from_transport=True)
+
+    def get_publication_info(self, doi):
+        # todo cache
+
+        if not self.publication_client:
+            self.prepare_publication_connection()
+
+        query = gql(
+            """
+            query getPublication($doi: [String!]!) {
+             publicationsByDoi(doi: $doi) {
+
+              doi,
+              abstract,
+              pubDate,
+              publisher,
+              rank,
+              citationCount,
+              title,
+              normalizedTitle,
+              year,
+
+            } 
+        }
+
+        """)
+
+        params = {"doi": doi}
+        result = self.publication_client.execute(query, variable_values=params)
+        if 'publicationsByDoi' in result and len(result['publicationsByDoi']) > 0:
+            # todo better way?
+            return result['publicationsByDoi'][0]
+        else:
+            logging.warning(self.log + 'unable to get data for doi: %s' % doi)
+        return False
 
 # from kafka import KafkaConsumer, KafkaProducer
 #
@@ -99,8 +146,6 @@ class TwitterWorker(EventStreamConsumer):
 #     finally:
 #         return _producer
 #
-
-
 
 
 # def stop():
