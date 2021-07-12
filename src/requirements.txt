@@ -1,5 +1,5 @@
 lxml
-kafka
+amba-event-stream
 # pymongo
 # ruamel.yaml
 requests

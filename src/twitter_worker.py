@@ -1,8 +1,11 @@
 import logging
+from multiprocessing.context import Process
 
-from EventStream.event_stream_consumer import EventStreamConsumer
-from EventStream.event_stream_producer import EventStreamProducer
-from EventStream.event import Event
+from event_stream.event_stream_consumer import EventStreamConsumer
+from event_stream.event_stream_producer import EventStreamProducer
+from event_stream.event import Event
+
+
 
 class TwitterWorker(EventStreamConsumer, EventStreamProducer):
     state = "linked"
@@ -17,15 +20,26 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         # print(json_msg)
         logging.warning(self.log + "on message twitter consumer")
 
-        # todo
-
         e = Event()
         e.from_json(json_msg)
+
+        e.data['subj']['processed']['questionMarkCount'] = e.data['subj']['data']['text'].count("?")
+        e.data['subj']['processed']['exclamationMarkCount'] = e.data['subj']['data']['text'].count("!")
+        e.data['subj']['processed']['exclamationMarkCount'] = len(e.data['subj']['data']['text'])
+
+        # - Sentiment
+        # - time between tweet and pubDate
+        # pubDate = e.data['obj']['']
+        # - hashtags (semantic normalized?)
+        # - entities (semantic normalized?)
+        # - containsAbstract
+        # - isBot
+        # - typeOfTweet (quote, retweet, orginal)
+        # - score (how high we rank this tweet)
+        # - match tweet author and publication author
+
         e.set('state', 'processed')
         self.publish(e)
-
-
-
 
 # from kafka import KafkaConsumer, KafkaProducer
 #

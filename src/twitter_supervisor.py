@@ -1,56 +1,69 @@
 import signal
 import time
 from multiprocessing import Process
+import logging
 
 from twitter_worker import TwitterWorker
 
-import logging
-
 
 class Supervisor:
+
     def __init__(self):
         self.running = True
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGTERM, self.stop)  # need
+        self.workers = list()
+        self.tw = list()
 
-    def stop(self, signum):
-        logging.warning("Supervisor    :" + signum)
+    def stop(self, signum, els):
+        logging.warning("Supervisor stop")
+        self.stop_workers()
         self.running = False
 
-    def stopWorkers(self):
+    def stop_workers(self):
         logging.warning("Supervisor    : close threads.")
-        for worker in self.workers:
-            worker.kill()
+
+        for tw in self.tw:
+            tw.stop()
+
+        for work in self.workers:
+            work.close()
 
     def main(self):
         format = "%(asctime)s: %(message)s"
         logging.basicConfig(format=format, level=logging.INFO,
                             datefmt="%H:%M:%S")
-        self.workers = list()
-
 
 
 if __name__ == "__main__":
     # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
-    logging.warning('start twitter worker')
-    time.sleep(15)
-    logging.warning('connect')
 
-    e = TwitterWorker(1)
+    w = TwitterWorker(0)
+    logging.warning('start twitter worker ... connect in %s' % w.kafka_boot_time)
+    for i in range(w.kafka_boot_time, 1, -1):
+        time.sleep(1)
+        logging.debug('%ss left' % i)
+
+    logging.warning('start consuming')
     # e.get_publication_info("10.1109/5.7710731")
-    e.consume()
 
+    # w.consume()
 
-    # supervisor = Supervisor()
-    # supervisor.main()
-    # number_worker = 5  # same as partitions
-    # total_workers = 0
-    #
-    # while supervisor.running:
-    #     while len([w for w in supervisor.workers if w.is_alive()]) <= number_worker:
-    #         total_workers += 1
-    #         logging.warning("Main    : create and start thread %d.", total_workers)
-    #         worker = Process(target=TwitterWorker.start_worker, args=(total_workers,), daemon=True)
-    #         worker.start()
-    #         supervisor.workers.append(worker)
+    supervisor = Supervisor()
+    supervisor.main()
+    number_worker = 2  # same as partitions
+    total_workers = 0
 
+    max_workers = 50 # ??
+    # todo stop after issues not on close (classes)
+
+    while supervisor.running:
+        while len([w for w in supervisor.workers if w.is_alive()]) <= number_worker and max_workers > total_workers:
+            total_workers += 1
+            logging.warning("Main    : create and start thread %d.", total_workers)
+            t = TwitterWorker(total_workers)
+            supervisor.tw.append(t)
+            worker = Process(target=t.consume)
+            # worker = TwitterWorker(total_workers)
+            worker.start()
+            supervisor.workers.append(worker)
