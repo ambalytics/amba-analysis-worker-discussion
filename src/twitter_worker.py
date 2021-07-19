@@ -23,6 +23,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e = Event()
         e.from_json(json_msg)
 
+        e.data['subj']['processed'] = {}
         e.data['subj']['processed']['questionMarkCount'] = e.data['subj']['data']['text'].count("?")
         e.data['subj']['processed']['exclamationMarkCount'] = e.data['subj']['data']['text'].count("!")
         e.data['subj']['processed']['exclamationMarkCount'] = len(e.data['subj']['data']['text'])
