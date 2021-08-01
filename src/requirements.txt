@@ -3,3 +3,4 @@ amba-event-stream
 # pymongo
 # ruamel.yaml
 requests
+spacy
