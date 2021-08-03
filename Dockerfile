@@ -6,5 +6,6 @@ COPY . .
 RUN pip install --upgrade pip
 COPY src/requirements.txt /requirements.txt
 RUN pip install -r src/requirements.txt
+RUN python3 -m spacy download en_core_web_sm
 
 CMD [ "python", "./src/twitter_supervisor.py" ]

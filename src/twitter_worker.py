@@ -1,6 +1,7 @@
 import logging
+import math
 import re
-from datetime import date
+from datetime import date, datetime
 from multiprocessing.context import Process
 from difflib import SequenceMatcher
 import spacy
@@ -11,14 +12,58 @@ from event_stream.event_stream_producer import EventStreamProducer
 from event_stream.event import Event
 
 
+# todo heartbeat kafka?
+# WARNING:kafka.coordinator:Heartbeat failed for group twitter-worker because it is rebalancing
+# WARNING:kafka.coordinator:Heartbeat failed ([Error 27] RebalanceInProgressError); retrying
+
+# Process ForkPoolWorker-2:1:
+# Traceback (most recent call last):
+# File "/usr/local/lib/python3.6/multiprocessing/process.py", line 258, in _bootstrap
+# self.run()
+# File "/usr/local/lib/python3.6/multiprocessing/process.py", line 93, in run
+# self._target(*self._args, **self._kwargs)
+# File "/usr/local/lib/python3.6/multiprocessing/pool.py", line 103, in worker
+# initializer(*initargs)
+# File "/usr/local/lib/python3.6/site-packages/event_stream/event_stream_consumer.py", line 109, in worker
+# self.on_message(item)
+# File "/src/src/twitter_worker.py", line 93, in on_message
+# e.data['obj']['data']['abstract'])
+# File "/src/src/twitter_worker.py", line 16, in compare_text
+# return SequenceMatcher(None, a, b).ratio()
+# File "/usr/local/lib/python3.6/difflib.py", line 644, in ratio
+# matches = sum(triple[-1] for triple in self.get_matching_blocks())
+# File "/usr/local/lib/python3.6/difflib.py", line 467, in get_matching_blocks
+# la, lb = len(self.a), len(self.b)
+# TypeError: object of type 'NoneType' has no len()
+
 # compare text and return score
 def compare_text(a, b):
+    if not a or not b:
+        return 0
     return SequenceMatcher(None, a, b).ratio()
 
 
 def normalize(string):
     # todo numbers, special characters/languages
     return (re.sub('[^a-zA-Z ]+', '', string)).casefold().strip()
+
+
+def score_time(x):
+    y = (math.log(x) / math.log(1 / 7) + 2) * 10
+    if y > 30:
+        return 30
+    if y < 1:
+        return 1
+    return y
+
+
+def score_type(type):
+    if type == 'quote':
+        return 7
+    if type == 'retweet':
+        return 6
+    # tweet
+    return 10
 
 
 class TwitterWorker(EventStreamConsumer, EventStreamProducer):
@@ -53,7 +98,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['length'] = len(e.data['subj']['data']['text'])
 
         split_date = e.data['obj']['data']['pubDate'].split('-')
-        pub_timestamp = date(split_date[0], split_date[1], split_date[2])
+        pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
 
         # todo use date from twitter not today
         e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
@@ -82,8 +127,9 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         context_a_entity = []
         if 'context_annotations' in e.data['subj']['data']:
             for tag in e.data['subj']['data']['context_annotations']:
-                context_a_domain.append(tag['name'])
-                context_a_entity.append(tag['name'])
+                # context_a_domain.append(tag['name'])
+                # context_a_entity.append(tag['name'])
+                logging.warning('context a domain append tag name %s' % tag)
         e.data['subj']['processed']['context_domain'] = context_a_domain
         e.data['subj']['processed']['context_entity'] = context_a_entity
 
@@ -96,8 +142,8 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         else:
             e.data['subj']['processed']['bot_rating'] = 1
 
-        # typeOfTweet (quote, retweet, orginal)
-        if not e.data['subj']['data']['referenced_tweets']['type']:
+        # typeOfTweet (quote, retweet, tweet)
+        if not e.data['subj']['data']['referenced_tweets'][0]['type']:
             e.data['subj']['processed']['tweet_type'] = 'tweet'
         else:
             e.data['subj']['processed']['tweet_type'] = e.data['subj']['data']['referenced_tweets'][0]['type']
@@ -107,15 +153,23 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         text = e.data['subj']['data']['text'].strip().lower()
         e.data['subj']['processed']['words'] = self.spacy_process(text)
 
-        # - Sentiment
+        # - Sentiment https://realpython.com/sentiment-analysis-python/
         # - score (how high we rank this tweet)
         # - match tweet author and publication author # compare just with text compare
+
+        bot_score = e.data['subj']['processed']['bot_rating']
+        type_score = score_type(e.data['subj']['processed']['tweet_type'])
+        dt = datetime(int(split_date[0]), int(split_date[1]), int(split_date[2]))
+        time_score = score_time((datetime.today() - dt).days)
+        abstract_score = (2 / (e.data['subj']['processed']['contains_abstract'] + 1) - 1) * 10  # todo check
+        logging.warning('score %s - %s - %s - %s' % (time_score, type_score, bot_score, abstract_score))
+        e.data['subj']['processed']['score'] = time_score * type_score * bot_score * abstract_score
 
         e.set('state', 'processed')
         self.publish(e)
 
-
     # https://towardsdatascience.com/text-normalization-with-spacy-and-nltk-1302ff430119
+    # todo remove hashtags? remove @somebody
     def spacy_process(self, text):
         if not self.nlp:
             self.nlp = spacy.load('en_core_web_sm')
@@ -145,12 +199,10 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         # print("Remove stopword & punctuation: ")
         # print(filtered_sentence)
 
-        # todo check if this makes sense, we may have no duplicates here
+        # remove count since it is just short?
         word_freq = Counter(filtered_sentence)
         common_words = word_freq.most_common(10)
         return common_words
-
-
 # from kafka import KafkaConsumer, KafkaProducer
 #
 # topic_name = 'events'
