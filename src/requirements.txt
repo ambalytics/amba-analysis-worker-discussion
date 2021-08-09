@@ -4,3 +4,4 @@ amba-event-stream
 # ruamel.yaml
 requests
 spacy
+spacytextblob

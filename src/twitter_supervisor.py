@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     supervisor = Supervisor()
     supervisor.main()
-    number_worker = 2  # same as partitions
+    number_worker = 1  # same as partitions
     total_workers = 0
 
     max_workers = 50 # ??
