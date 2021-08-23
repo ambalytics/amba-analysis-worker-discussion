@@ -1,0 +1,8 @@
+lxml
+amba-event-stream
+requests
+spacy
+spacytextblob
+mkdocs
+mkdocs-material
+mkdocstrings
