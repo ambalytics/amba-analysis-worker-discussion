@@ -1,1 +1,1 @@
-::: src.twitter_supervisor
+::: twitter_supervisor

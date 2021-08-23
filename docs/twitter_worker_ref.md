@@ -1,1 +1,1 @@
-::: src.twitter_worker
+::: twitter_worker
