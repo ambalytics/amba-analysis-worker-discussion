@@ -22,12 +22,23 @@ from event_stream.event import Event
 # WARNING:kafka.coordinator:Heartbeat failed ([Error 27] RebalanceInProgressError); retrying
 
 
+# score higher better
+
 def normalize(string):
-    # todo numbers, special characters/languages
+    """normalize a string
+
+    Arguments:
+        string: the string to be normalized
+    """
     return (re.sub('[^a-zA-Z ]+', '', string)).casefold().strip()
 
 
 def score_time(x):
+    """calculate a score based on a given time
+
+    Arguments:
+        x: the time to base the score on
+    """
     y = (math.log(x) / math.log(1 / 7) + 2) * 10
     if y > 30:
         return 30
@@ -37,19 +48,41 @@ def score_time(x):
 
 
 def score_type(type):
+    """calculate a score based on a given type
+
+    Arguments:
+        type: the type to base the score on
+    """
     if type == 'quote':
         return 7
     if type == 'retweet':
-        return 6
-    # tweet
+        return 2
+    # original tweet
     return 10
 
 
-# todo check encoding, use country code
+def score_length(length):
+    """calculate a score based on a given length
+
+    Arguments:
+        length: the length to base the score on
+    """
+    if length < 50:
+        return 3
+    if length < 100:
+        return 6
+    return 10
+
+
 @lru_cache(maxsize=100)
 def geoencode(location):
+    """geoencode a location
+
+    Arguments:
+        location: the location we want a country for
+    """
     base_url = 'https://nominatim.openstreetmap.org/search?&format=jsonv2&addressdetails=1&q='
-    r = requests.get(base_url+location)
+    r = requests.get(base_url + location)
     if r.status_code == 200:
         json_response = r.json()
         if json_response and isinstance(json_response, list) and len(json_response) > 0:
@@ -60,21 +93,33 @@ def geoencode(location):
                 return json_object['address']['country_code']
     return None
 
+
 class TwitterWorker(EventStreamConsumer, EventStreamProducer):
+    """process tweets
+    """
     state = "linked"
     relation_type = "discusses"
     publication_client = False
     log = "TwitterWorker "
     group_id = "twitter-worker"
-    nlp = False
+    nlp = {
+        'de': None,
+        'es': None,
+        'en': None
+    }
 
     def on_message(self, json_msg):
-        # print('hello')
-        # print(json_msg)
+        """process a tweet
+
+        Arguments:
+            json_msg: the json_msg containing the event to be processed
+        """
         logging.warning(self.log + "on message twitter consumer")
 
         e = Event()
         e.from_json(json_msg)
+
+        # todo check that source_id is twitter
 
         e.data['subj']['processed'] = {}
         e.data['subj']['processed']['question_mark_count'] = e.data['subj']['data']['text'].count("?")
@@ -117,21 +162,11 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['context_domain'] = context_a_domain
         e.data['subj']['processed']['context_entity'] = context_a_entity
 
-        # containsAbstract, calculate score for comparison
-        # e.data['subj']['processed']['contains_abstract'] = compare_text(e.data['subj']['data']['text'],
-        #                                                                 e.data['obj']['data']['abstract'])
-        # # isBot
-        # if e.data['subj']['data']['source'] in self.source_score:
-        #     e.data['subj']['processed']['bot_rating'] = self.source_score[e.data['subj']['data']['source']]
-        # else:
-        #     e.data['subj']['processed']['bot_rating'] = 1
-
         # typeOfTweet (quote, retweet, tweet)
         if not e.data['subj']['data']['referenced_tweets'][0]['type']:
             e.data['subj']['processed']['tweet_type'] = 'tweet'
         else:
             e.data['subj']['processed']['tweet_type'] = e.data['subj']['data']['referenced_tweets'][0]['type']
-
 
         # author processing
         author_data = TwitterWorker.get_author_data(e.data['subj']['data'])
@@ -146,55 +181,106 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
             e.data['subj']['processed']['followers'] = author_data['public_metrics']['followers_count']
 
-            e.data['subj']['processed']['verified'] = 1 if author_data['verified'] else 0.7
+            e.data['subj']['processed']['verified'] = 10 if author_data['verified'] else 7
             e.data['subj']['processed']['name'] = author_data['username']
 
             if 'bot' in author_data['username']:
                 e.data['subj']['processed']['bot_rating'] = 1
             else:
-                e.data['subj']['processed']['bot_rating'] = 0.1
+                e.data['subj']['processed']['bot_rating'] = 10
 
-
-        # use nltk and check for lang = eng, stop words etc
-        # normalized tokenized top words from text, remove hashtags and stuff ?
         text = e.data['subj']['data']['text'].strip().lower()
-
-        spacy_result = self.spacy_process(text, e.data['obj']['data']['abstract'])
+        spacy_result = self.spacy_process(text, e.data['obj']['data']['abstract'], e.data['subj']['data']['lang'])
         e.data['subj']['processed']['words'] = spacy_result['common_words']
-        e.data['subj']['processed']['contains_abstract'] = spacy_result['abstract']
-        e.data['subj']['processed']['sentiment'] = spacy_result['sentiment']
+        e.data['subj']['processed']['contains_abstract'] = self.normalize_abstract_value(spacy_result['abstract'])
+        e.data['subj']['processed']['sentiment'] = self.normalize_sentiment_value(spacy_result['sentiment'])
 
-        # - Sentiment https://realpython.com/sentiment-analysis-python/
-        # - score (how high we rank this tweet)
-        # - match tweet author and publication author # compare just with text compare
+        user_score = e.data['subj']['processed']['bot_rating'] + math.log(e.data['subj']['processed']['followers'], 2)
+        user_score += e.data['subj']['processed']['verified']
 
-        user_score = e.data['subj']['processed']['bot_rating'] * math.log(e.data['subj']['processed']['followers'], 2) * e.data['subj']['processed']['verified']
         type_score = score_type(e.data['subj']['processed']['tweet_type'])
+
         dt = datetime(int(split_date[0]), int(split_date[1]), int(split_date[2]))
         time_score = score_time((datetime.today() - dt).days)
 
-        abstract_score = (2 / (e.data['subj']['processed']['contains_abstract'] + 1) - 1) * 10  # todo check or use threshold
-        # abstract_score = 1 if e.data['subj']['processed']['contains_abstract'] > 0.7 else 0
+        content_score = e.data['subj']['processed']['contains_abstract'] + e.data['subj']['processed']['sentiment']
+        content_score += score_length(e.data['subj']['processed']['length'])
 
-        logging.warning('score %s - %s - %s - %s' % (time_score, type_score, user_score, abstract_score))
+        logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
 
-        weights = {'time': 1, 'type': 1, 'user': 1, 'abstract': 1}
-        e.data['subj']['processed']['score'] = weights['time'] * time_score + weights['type'] * type_score + weights[
-            'user'] * user_score + weights['abstract'] * abstract_score
+        e.data['subj']['processed']['time_score'] = time_score
+        e.data['subj']['processed']['type_score'] = type_score
+        e.data['subj']['processed']['user_score'] = user_score
+        e.data['subj']['processed']['content_score'] = content_score
+
+        weights = {'time': 1, 'type': 1, 'user': 1, 'content': 1}
+        e.data['subj']['processed']['score'] = weights['time'] * time_score
+        e.data['subj']['processed']['score'] += weights['type'] * type_score
+        e.data['subj']['processed']['score'] += weights['user'] * user_score
+        e.data['subj']['processed']['score'] += weights['content'] * content_score
 
         e.set('state', 'processed')
         self.publish(e)
 
+    @staticmethod
+    def normalize_abstract_value(value):
+        """normalize the calculated value from an abstract comparison
+
+        Arguments:
+            value: the value to be normalized
+        """
+
+        if value < 0:
+            return 10
+        if value < 0.7:
+            return 5
+        return 1
+
+    @staticmethod
+    def normalize_sentiment_value(value):
+        """normalize the calculated value from an sentiment comparison
+
+        Arguments:
+            value: the value to be normalized
+        """
+        if value > 0.5:
+            return 10
+        if value < -0.5:
+            return 1
+        return 5
+
     # https://towardsdatascience.com/text-normalization-with-spacy-and-nltk-1302ff430119
-    # todo remove hashtags? remove @somebody
-    def spacy_process(self, text, abstract):
-        if not self.nlp:
-            self.nlp = spacy.load('en_core_web_md')
-            self.nlp.add_pipe('spacytextblob')
+    # https://towardsdatascience.com/twitter-sentiment-analysis-a-tale-of-stream-processing-8fd92e19a6e6
+    # todo switch depending on languages
+    # remove rt, min word letter count 3?, remove links
+    def spacy_process(self, text, abstract, lang):
+        """process a tweet using spacy
 
-        abstract_doc = self.nlp(abstract)
+        Arguments:
+            text: the tweet text
+            abstract: the publication abstract
+            lang: language of the tweet
+        """
+        local_nlp = None
+        if lang is 'de':
+            if not self.nlp[lang]:
+                self.nlp[lang] = spacy.load('de_core_news_md')
+                self.nlp[lang].add_pipe('spacytextblob')
+            local_nlp = self.nlp[lang]
+        elif lang is 'es':
+            if not self.nlp[lang]:
+                self.nlp[lang] = spacy.load('es_core_news_md')
+                self.nlp[lang].add_pipe('spacytextblob')
+            local_nlp = self.nlp[lang]
+        else:
+            if not self.nlp['en']:
+                self.nlp['en'] = spacy.load('en_core_web_md')
+                self.nlp['en'].add_pipe('spacytextblob')
+            local_nlp = self.nlp['en']
 
-        doc = self.nlp(text)
+        # todo use language from the publication not the tweet to compare?
+        abstract_doc = local_nlp(abstract)
+        doc = local_nlp(text)
 
         # Tokenization and lemmatization are done with the spacy nlp pipeline commands
         lemma_list = []
@@ -206,18 +292,18 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         # Filter the stopword
         filtered_sentence = []
         for word in lemma_list:
-            lexeme = self.nlp.vocab[word]
+            lexeme = local_nlp.vocab[word]
             if lexeme.is_stop == False:
                 filtered_sentence.append(word)
 
-                # Remove punctuation
+        # Remove punctuation, remove links, remove words with 1 or 2 letters
         punctuations = "?:!.,;"
         for word in filtered_sentence:
-            if word in punctuations:
+            # logging.warning('wordlen %s - %s ' % (word, str(len(word))))
+            if word in punctuations or 'http' in word or len(word) < 3:
+                # logging.warning('remove %s', word)
                 filtered_sentence.remove(word)
-        # print(" ")
-        # print("Remove stopword & punctuation: ")
-        # print(filtered_sentence)
+
 
         # remove count since it is just short?
         word_freq = Counter(filtered_sentence)
@@ -232,10 +318,14 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
     @staticmethod
     def get_author_data(tweet_data):
+        """get the author data of a tweet
+
+        Arguments:
+            tweet_data: the tweet data we want an author from
+        """
         author_id = tweet_data['author_id']
 
         for user in tweet_data['includes']['users']:
             if user['id'] == author_id:
                 return user
         return None
-
