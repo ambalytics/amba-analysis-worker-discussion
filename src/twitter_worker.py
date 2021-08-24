@@ -34,12 +34,12 @@ def normalize(string):
 
 
 def score_time(x):
-    """calculate a score based on a given time
+    """calculate a score based on a given time in days
 
     Arguments:
         x: the time to base the score on
     """
-    y = (math.log(x) / math.log(1 / 7) + 2) * 10
+    y = (math.log(x) / math.log(1 / 7) + 3) * 10
     if y > 30:
         return 30
     if y < 1:
