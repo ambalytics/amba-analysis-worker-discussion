@@ -53,7 +53,7 @@ def throughput_statistics(v, time_delta):
     with v.get_lock():
         v.value = 0
 
-    threading.Timer(counter_time, throughput_statistics, args=[v, time_delta]).start()
+    threading.Timer(time_delta, throughput_statistics, args=[v, time_delta]).start()
 
 
 if __name__ == "__main__":
@@ -64,32 +64,34 @@ if __name__ == "__main__":
     # for i in range(w.kafka_boot_time, 1, -1):
     #     time.sleep(1)
     #     logging.debug('%ss left' % i)
-    # time.sleep(10)
+    time.sleep(10)
+    t = TwitterWorker(1)
+    t.consume()
     # logging.warning('start consuming')
     # e.get_publication_info("10.1109/5.7710731")
 
     # w.consume()
 
-    supervisor = Supervisor()
-    supervisor.main()
-    number_worker = 1  # same as partitions
-    total_workers = 0
+    # supervisor = Supervisor()
+    # supervisor.main()
+    # number_worker = 1  # same as partitions
+    # total_workers = 0
 
-    max_workers = 50  # ??
+    # max_workers = 50  # ??
     # todo stop after issues not on close (classes)
 
-    counter = Value('i', 0)
-    counter_time = 10
-    threading.Timer(counter_time, throughput_statistics, args=[counter, counter_time]).start()
+    # counter = Value('i', 0)
+    # counter_time = 10
+    # threading.Timer(counter_time, throughput_statistics, args=[counter, counter_time]).start()
 
-    while supervisor.running:
-        while len([w for w in supervisor.workers if w.is_alive()]) <= number_worker and max_workers > total_workers:
-            total_workers += 1
-            logging.warning("Main    : create and start thread %d.", total_workers)
-            t = TwitterWorker(total_workers, counter)
-            supervisor.tw.append(t)
-            worker = Process(target=t.consume)
+    # while supervisor.running:
+    #     while len([w for w in supervisor.workers if w.is_alive()]) <= number_worker and max_workers > total_workers:
+    #         total_workers += 1
+    #         logging.warning("Main    : create and start thread %d.", total_workers)
+    #         t = TwitterWorker(total_workers, counter)
+    #         supervisor.tw.append(t)
+    #         worker = Process(target=t.consume)
             # worker = TwitterWorker(total_workers)
-            worker.start()
-            supervisor.workers.append(worker)
-            time.sleep(0.5)
+            # worker.start()
+            # supervisor.workers.append(worker)
+            # time.sleep(0.5)

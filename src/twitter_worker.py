@@ -1,5 +1,6 @@
 import logging
 import math
+import numbers
 import re
 from datetime import date, datetime
 from functools import lru_cache
@@ -39,12 +40,16 @@ def score_time(x):
     Arguments:
         x: the time to base the score on
     """
-    y = (math.log(x) / math.log(1 / 7) + 3) * 10
-    if y > 30:
-        return 30
-    if y < 1:
-        return 1
-    return y
+    if x and type(x) == int or type(x) == float:
+        y = (math.log(x) / math.log(1 / 7) + 3) * 10
+        if y > 30:
+            return 30
+        if y < 1:
+            return 1
+        return y
+    else:
+        logging.warning('missing x')
+    return 1
 
 
 def score_type(type):
@@ -107,6 +112,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         'es': None,
         'en': None
     }
+    process_number = 2
 
     def on_message(self, json_msg):
         """process a tweet
@@ -127,7 +133,12 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['length'] = len(e.data['subj']['data']['text'])
 
         split_date = e.data['obj']['data']['pubDate'].split('-')
-        pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
+        pub_timestamp = 2021
+        if len(split_date) > 2:
+            pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
+        if len(split_date) == 1:
+            pub_timestamp = date(int(split_date[0]), 1, 1)
+            split_date = [split_date[0], 1, 1]
 
         # todo use date from twitter not today
         e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
@@ -189,22 +200,26 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             else:
                 e.data['subj']['processed']['bot_rating'] = 10
 
+        content_score = 1
         text = e.data['subj']['data']['text'].strip().lower()
-        spacy_result = self.spacy_process(text, e.data['obj']['data']['abstract'], e.data['subj']['data']['lang'])
-        e.data['subj']['processed']['words'] = spacy_result['common_words']
-        e.data['subj']['processed']['contains_abstract'] = self.normalize_abstract_value(spacy_result['abstract'])
-        e.data['subj']['processed']['sentiment'] = self.normalize_sentiment_value(spacy_result['sentiment'])
+        if text and e.data['obj']['data']['abstract'] and e.data['subj']['data']['lang']:
+            spacy_result = self.spacy_process(text, e.data['obj']['data']['abstract'], e.data['subj']['data']['lang'])
+            e.data['subj']['processed']['words'] = spacy_result['common_words']
+            e.data['subj']['processed']['contains_abstract'] = self.normalize_abstract_value(spacy_result['abstract'])
+            e.data['subj']['processed']['sentiment'] = self.normalize_sentiment_value(spacy_result['sentiment'])
+            content_score = e.data['subj']['processed']['contains_abstract'] + e.data['subj']['processed']['sentiment']
+        content_score += score_length(e.data['subj']['processed']['length'])
 
-        user_score = e.data['subj']['processed']['bot_rating'] + math.log(e.data['subj']['processed']['followers'], 2)
+        user_score = e.data['subj']['processed']['bot_rating']
+        if e.data['subj']['processed']['followers'] and type(e.data['subj']['processed']['followers']) == int \
+                or type(e.data['subj']['processed']['followers']) == float:
+            user_score += math.log(e.data['subj']['processed']['followers'], 2)
         user_score += e.data['subj']['processed']['verified']
 
         type_score = score_type(e.data['subj']['processed']['tweet_type'])
 
         dt = datetime(int(split_date[0]), int(split_date[1]), int(split_date[2]))
         time_score = score_time((datetime.today() - dt).days)
-
-        content_score = e.data['subj']['processed']['contains_abstract'] + e.data['subj']['processed']['sentiment']
-        content_score += score_length(e.data['subj']['processed']['length'])
 
         logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
 
@@ -279,6 +294,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             local_nlp = self.nlp['en']
 
         # todo use language from the publication not the tweet to compare?
+        # does language for comparison matter?
         abstract_doc = local_nlp(abstract)
         doc = local_nlp(text)
 
