@@ -812,6 +812,9 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_date</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">split_date</span> <span class="o">=</span> <span class="p">[</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># todo fix</span>
+        <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">pub_timestamp</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># todo use date from twitter not today</span>
     <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">pub_timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
