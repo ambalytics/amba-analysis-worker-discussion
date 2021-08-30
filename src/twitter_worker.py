@@ -139,6 +139,9 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         if len(split_date) == 1:
             pub_timestamp = date(int(split_date[0]), 1, 1)
             split_date = [split_date[0], 1, 1]
+        else:
+            # todo fix
+            pub_timestamp = date(pub_timestamp, 1, 1)
 
         # todo use date from twitter not today
         e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
