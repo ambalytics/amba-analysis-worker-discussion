@@ -17,6 +17,8 @@ from event_stream.event_stream_consumer import EventStreamConsumer
 from event_stream.event_stream_producer import EventStreamProducer
 from event_stream.event import Event
 
+from dao import DAO
+
 
 # todo heartbeat kafka?
 # WARNING:kafka.coordinator:Heartbeat failed for group twitter-worker because it is rebalancing
@@ -47,8 +49,8 @@ def score_time(x):
         if y < 1:
             return 1
         return y
-    else:
-        logging.warning('missing x')
+    # else:
+        # logging.warning('missing x')
     return 1
 
 
@@ -114,12 +116,19 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
     }
     process_number = 2
 
+    dao = None
+
     def on_message(self, json_msg):
         """process a tweet
 
         Arguments:
             json_msg: the json_msg containing the event to be processed
         """
+
+        if not self.dao:
+            self.dao = DAO()
+            logging.warning(self.log + " create dao")
+
         logging.warning(self.log + "on message twitter consumer")
 
         e = Event()
@@ -136,12 +145,12 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         pub_timestamp = 2021
         if len(split_date) > 2:
             pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
-        if len(split_date) == 1:
+        elif len(split_date) == 1:
             pub_timestamp = date(int(split_date[0]), 1, 1)
             split_date = [split_date[0], 1, 1]
         else:
             # todo fix
-            pub_timestamp = date(pub_timestamp, 1, 1)
+            pub_timestamp = date(2012, 1, 1)
 
         # todo use date from twitter not today
         e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
@@ -171,8 +180,8 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         if 'context_annotations' in e.data['subj']['data']:
             for tag in e.data['subj']['data']['context_annotations']:
                 # context_a_domain.append(tag['name'])
-                # context_a_entity.append(tag['name'])
-                logging.warning('context a domain append tag name %s' % tag)
+                context_a_entity.append(tag['name'])
+                # logging.warning('context a domain append tag name %s' % tag)
         e.data['subj']['processed']['context_domain'] = context_a_domain
         e.data['subj']['processed']['context_entity'] = context_a_entity
 
@@ -224,7 +233,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         dt = datetime(int(split_date[0]), int(split_date[1]), int(split_date[2]))
         time_score = score_time((datetime.today() - dt).days)
 
-        logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
+        # logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
 
         e.data['subj']['processed']['time_score'] = time_score
         e.data['subj']['processed']['type_score'] = type_score
@@ -238,6 +247,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['score'] += weights['content'] * content_score
 
         e.set('state', 'processed')
+        self.dao.save_discussion_data(e.data)
         self.publish(e)
 
     @staticmethod
