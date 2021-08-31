@@ -17,7 +17,7 @@ from event_stream.event_stream_consumer import EventStreamConsumer
 from event_stream.event_stream_producer import EventStreamProducer
 from event_stream.event import Event
 
-# from dao import DAO
+from dao import DAO
 
 
 # todo heartbeat kafka?
@@ -114,9 +114,9 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         'es': None,
         'en': None
     }
-    process_number = 2
+    process_number = 1
 
-    # dao = None
+    dao = None
 
     def on_message(self, json_msg):
         """process a tweet
@@ -125,15 +125,9 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             json_msg: the json_msg containing the event to be processed
         """
         #
-        # if not self.dao:
-        #     self.dao = DAO()
-        #     logging.war
-        # if not self.dao:
-        #     self.dao = DAO()
-        #     logging.war
-        # if not self.dao:
-        #     self.dao = DAO()
-        #     logging.warning(self.log + " create dao")
+        if not self.dao:
+            self.dao = DAO()
+            logging.warning(self.log + " create dao")
 
         logging.warning(self.log + "on message twitter consumer")
 
@@ -183,10 +177,10 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         # todo filter context annotation types
         context_a_domain = []
         context_a_entity = []
-        if 'context_annotations' in e.data['subj']['data']:
-            for tag in e.data['subj']['data']['context_annotations']:
+        # if 'context_annotations' in e.data['subj']['data']:
+            # for tag in e.data['subj']['data']['context_annotations']:
                 # context_a_domain.append(tag['name'])
-                context_a_entity.append(tag['name'])
+                # context_a_entity.append(tag['name'])
                 # logging.warning('context a domain append tag name %s' % tag)
         e.data['subj']['processed']['context_domain'] = context_a_domain
         e.data['subj']['processed']['context_entity'] = context_a_entity
@@ -253,7 +247,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['score'] += weights['content'] * content_score
 
         e.set('state', 'processed')
-        # self.dao.save_discussion_data(e.data)
+        self.dao.save_discussion_data(e.data)
         self.publish(e)
 
     @staticmethod
