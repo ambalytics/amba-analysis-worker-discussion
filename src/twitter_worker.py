@@ -17,7 +17,7 @@ from event_stream.event_stream_consumer import EventStreamConsumer
 from event_stream.event_stream_producer import EventStreamProducer
 from event_stream.event import Event
 
-from dao import DAO
+# from dao import DAO
 
 
 # todo heartbeat kafka?
@@ -116,7 +116,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
     }
     process_number = 2
 
-    dao = None
+    # dao = None
 
     def on_message(self, json_msg):
         """process a tweet
@@ -124,10 +124,16 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         Arguments:
             json_msg: the json_msg containing the event to be processed
         """
-
-        if not self.dao:
-            self.dao = DAO()
-            logging.warning(self.log + " create dao")
+        #
+        # if not self.dao:
+        #     self.dao = DAO()
+        #     logging.war
+        # if not self.dao:
+        #     self.dao = DAO()
+        #     logging.war
+        # if not self.dao:
+        #     self.dao = DAO()
+        #     logging.warning(self.log + " create dao")
 
         logging.warning(self.log + "on message twitter consumer")
 
@@ -247,7 +253,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['score'] += weights['content'] * content_score
 
         e.set('state', 'processed')
-        self.dao.save_discussion_data(e.data)
+        # self.dao.save_discussion_data(e.data)
         self.publish(e)
 
     @staticmethod
