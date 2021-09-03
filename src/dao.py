@@ -37,7 +37,6 @@ class DAO(object):
         #     print('error')
         #     self.session.rollback()
 
-
     def get_object(self, table, key):
         result = self.session.query(table).filter_by(**key).first()
         if not result:
@@ -53,7 +52,6 @@ class DAO(object):
             # print('does not exists')
             self.save_object(obj)
             return obj
-
 
     def save_discussion_data(self, event_data):
         # use doi or id?
@@ -74,6 +72,8 @@ class DAO(object):
             timeScore=event_data['subj']['processed']['time_score'],
             typeScore=event_data['subj']['processed']['type_score'],
             userScore=event_data['subj']['processed']['user_score'],
+            language=event_data['subj']['data']['lang'],
+            source=event_data['subj']['data']['source'],
             abstractDifference=event_data['subj']['processed']['contains_abstract'],
             length=event_data['subj']['processed']['length'],
             questions=event_data['subj']['processed']['question_mark_count'],
@@ -101,7 +101,8 @@ class DAO(object):
 
                 publication_entity = DiscussionEntityData(
                     **{'discussionDataId': discussion_data.id, 'discussionEntityId': entity.id})
-                self.save_object(publication_entity)
+                self.save_if_not_exist(publication_entity, DiscussionEntityData,
+                                       {'discussionDataId': discussion_data.id, 'discussionEntityId': entity.id})
 
         if 'words' in event_data['subj']['processed']:
             words = event_data['subj']['processed']['words']
@@ -113,6 +114,8 @@ class DAO(object):
                 publication_words = DiscussionWordData(
                     **{'discussionDataId': discussion_data.id, 'discussionWordId': word.id, 'count': words_data[1]})
                 self.save_object(publication_words)
+                self.save_if_not_exist(publication_words, DiscussionWordData,
+                                       {'discussionDataId': discussion_data.id, 'discussionWordId': word.id})
 
         if 'entities' in event_data['subj']['data'] and 'hashtags' in event_data['subj']['data']['entities']:
             hashtags = event_data['subj']['data']['entities']['hashtags']
@@ -124,5 +127,7 @@ class DAO(object):
                 publication_h = DiscussionHashtagData(
                     **{'discussionDataId': discussion_data.id, 'discussionHashtagId': hashtag.id})
                 self.save_object(publication_h)
+                self.save_if_not_exist(publication_h, DiscussionHashtagData,
+                                       {'discussionDataId': discussion_data.id, 'discussionHashtagId': hashtag.id})
 
         return discussion_data
