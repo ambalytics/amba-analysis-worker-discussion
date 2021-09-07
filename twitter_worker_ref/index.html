@@ -327,6 +327,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#twitter_worker.TwitterWorker.start" class="md-nav__link">
+    start()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -462,6 +469,13 @@
           <li class="md-nav__item">
   <a href="#twitter_worker.TwitterWorker.spacy_process" class="md-nav__link">
     spacy_process()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#twitter_worker.TwitterWorker.start" class="md-nav__link">
+    start()
   </a>
   
 </li>
@@ -790,7 +804,6 @@
           <summary>Source code in <code>src/twitter_worker.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_msg</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;process a tweet</span>
-
 <span class="sd">    Arguments:</span>
 <span class="sd">        json_msg: the json_msg containing the event to be processed</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -799,7 +812,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dao</span> <span class="o">=</span> <span class="n">DAO</span><span class="p">()</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">+</span> <span class="s2">&quot; create dao&quot;</span><span class="p">)</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">+</span> <span class="s2">&quot;on message twitter consumer&quot;</span><span class="p">)</span>
+    <span class="c1"># logging.warning(self.log + &quot;on message twitter consumer&quot;)</span>
 
     <span class="n">e</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
     <span class="n">e</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_msg</span><span class="p">)</span>
@@ -811,16 +824,17 @@
     <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;exclamation_mark_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;!&quot;</span><span class="p">)</span>
     <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
 
-    <span class="n">split_date</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;pubDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
-    <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="mi">2021</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_date</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
-    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_date</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">split_date</span> <span class="o">=</span> <span class="p">[</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;year&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+        <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;pubDate&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+        <span class="n">split_date</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;pubDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_date</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># todo fix</span>
-        <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;publication data is missing pubDate&#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 
     <span class="c1"># todo use date from twitter not today</span>
     <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">pub_timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
@@ -848,10 +862,10 @@
     <span class="n">context_a_domain</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">context_a_entity</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c1"># if &#39;context_annotations&#39; in e.data[&#39;subj&#39;][&#39;data&#39;]:</span>
-        <span class="c1"># for tag in e.data[&#39;subj&#39;][&#39;data&#39;][&#39;context_annotations&#39;]:</span>
-            <span class="c1"># context_a_domain.append(tag[&#39;name&#39;])</span>
-            <span class="c1"># context_a_entity.append(tag[&#39;name&#39;])</span>
-            <span class="c1"># logging.warning(&#39;context a domain append tag name %s&#39; % tag)</span>
+    <span class="c1"># for tag in e.data[&#39;subj&#39;][&#39;data&#39;][&#39;context_annotations&#39;]:</span>
+    <span class="c1"># context_a_domain.append(tag[&#39;name&#39;])</span>
+    <span class="c1"># context_a_entity.append(tag[&#39;name&#39;])</span>
+    <span class="c1"># logging.warning(&#39;context a domain append tag name %s&#39; % tag)</span>
     <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;context_domain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context_a_domain</span>
     <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;context_entity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context_a_entity</span>
 
@@ -900,8 +914,7 @@
 
     <span class="n">type_score</span> <span class="o">=</span> <span class="n">score_type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">])</span>
 
-    <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
-    <span class="n">time_score</span> <span class="o">=</span> <span class="n">score_time</span><span class="p">((</span><span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">dt</span><span class="p">)</span><span class="o">.</span><span class="n">days</span><span class="p">)</span>
+    <span class="n">time_score</span> <span class="o">=</span> <span class="n">score_time</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">])</span>
 
     <span class="c1"># logging.debug(&#39;score %s - %s - %s - %s&#39; % (time_score, type_score, user_score, content_score))</span>
 
@@ -983,6 +996,9 @@
 <span class="sd">        lang: language of the tweet</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">local_nlp</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># https://spacy.io/universe/project/spacy-langdetect</span>
+    <span class="c1"># in case we have an undefined language</span>
+    <span class="c1"># todo modularize</span>
     <span class="k">if</span> <span class="n">lang</span> <span class="ow">is</span> <span class="s1">&#39;de&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;de_core_news_md&#39;</span><span class="p">)</span>
@@ -999,44 +1015,74 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="s1">&#39;en&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_pipe</span><span class="p">(</span><span class="s1">&#39;spacytextblob&#39;</span><span class="p">)</span>
         <span class="n">local_nlp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="s1">&#39;en&#39;</span><span class="p">]</span>
 
-    <span class="c1"># todo use language from the publication not the tweet to compare?</span>
-    <span class="c1"># does language for comparison matter?</span>
-    <span class="n">abstract_doc</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="p">(</span><span class="n">abstract</span><span class="p">)</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
 
     <span class="c1"># Tokenization and lemmatization are done with the spacy nlp pipeline commands</span>
     <span class="n">lemma_list</span> <span class="o">=</span> <span class="p">[]</span>
+
     <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">:</span>
         <span class="n">lemma_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">lemma_</span><span class="p">)</span>
-    <span class="c1"># print(&quot;Tokenize+Lemmatize:&quot;)</span>
-    <span class="c1"># print(lemma_list)</span>
 
     <span class="c1"># Filter the stopword</span>
+    <span class="c1"># Remove punctuation, remove links, remove words with 1 or 2 letters</span>
+    <span class="n">punctuations</span> <span class="o">=</span> <span class="s2">&quot;?:!.,;/&quot;</span>
     <span class="n">filtered_sentence</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">lemma_list</span><span class="p">:</span>
         <span class="n">lexeme</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="o">.</span><span class="n">vocab</span><span class="p">[</span><span class="n">word</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">lexeme</span><span class="o">.</span><span class="n">is_stop</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
-            <span class="n">filtered_sentence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lexeme</span><span class="o">.</span><span class="n">is_stop</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">word</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">punctuations</span> <span class="ow">and</span> <span class="s1">&#39;http&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">word</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">filtered_sentence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
 
-    <span class="c1"># Remove punctuation, remove links, remove words with 1 or 2 letters</span>
-    <span class="n">punctuations</span> <span class="o">=</span> <span class="s2">&quot;?:!.,;&quot;</span>
-    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">filtered_sentence</span><span class="p">:</span>
-        <span class="c1"># logging.warning(&#39;wordlen %s - %s &#39; % (word, str(len(word))))</span>
-        <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">punctuations</span> <span class="ow">or</span> <span class="s1">&#39;http&#39;</span> <span class="ow">in</span> <span class="n">word</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="c1"># logging.warning(&#39;remove %s&#39;, word)</span>
-            <span class="n">filtered_sentence</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
-
-
-    <span class="c1"># remove count since it is just short?</span>
+    <span class="c1"># get most frequent words by and with count</span>
     <span class="n">word_freq</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">filtered_sentence</span><span class="p">)</span>
 
+    <span class="c1"># todo use language from the publication not the tweet to compare?</span>
+    <span class="c1"># does language for comparison matter?</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">abstract_doc</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="p">(</span><span class="n">abstract</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">abstract_doc</span> <span class="ow">and</span> <span class="n">abstract_doc</span><span class="o">.</span><span class="n">vector_norm</span><span class="p">:</span>
+        <span class="n">sim</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="n">abstract_doc</span><span class="p">)</span>
     <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;sentiment&#39;</span><span class="p">:</span> <span class="n">doc</span><span class="o">.</span><span class="n">_</span><span class="o">.</span><span class="n">polarity</span><span class="p">,</span>
-        <span class="s1">&#39;abstract&#39;</span><span class="p">:</span> <span class="n">doc</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="n">abstract_doc</span><span class="p">),</span>
+        <span class="s1">&#39;abstract&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="p">,</span>
         <span class="s1">&#39;common_words&#39;</span><span class="p">:</span> <span class="n">word_freq</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="twitter_worker.TwitterWorker.start" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">start</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>start the consumer</p>
+
+        <details class="quote">
+          <summary>Source code in <code>src/twitter_worker.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;start the consumer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">esc</span> <span class="o">=</span> <span class="n">TwitterWorker</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">TwitterWorker</span><span class="o">.</span><span class="n">log</span> <span class="o">+</span> <span class="s1">&#39;Start </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+    <span class="n">esc</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
 </code></pre></div>
         </details>
     </div>
@@ -1263,14 +1309,18 @@
 <span class="sd">        x: the time to base the score on</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">x</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">7</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">7</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValueError </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">30</span>
         <span class="k">if</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">y</span>
     <span class="c1"># else:</span>
-        <span class="c1"># logging.warning(&#39;missing x&#39;)</span>
+    <span class="c1"># logging.warning(&#39;missing x&#39;)</span>
     <span class="k">return</span> <span class="mi">1</span>
 </code></pre></div>
         </details>
