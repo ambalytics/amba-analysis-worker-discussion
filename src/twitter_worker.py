@@ -145,13 +145,17 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['exclamation_mark_count'] = e.data['subj']['data']['text'].count("!")
         e.data['subj']['processed']['length'] = len(e.data['subj']['data']['text'])
 
-        split_date = e.data['obj']['data']['pubDate'].split('-')
         pub_timestamp = date(2012, 1, 1)
-        if len(split_date) > 2:
-            pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
-        elif len(split_date) == 1:
-            pub_timestamp = date(int(split_date[0]), 1, 1)
-            split_date = [split_date[0], 1, 1]
+        if 'year' in e.data['obj']['data']:
+            pub_timestamp = date(e.data['obj']['data']['year'], 1, 1)
+
+        if 'pubDate' in e.data['obj']['data']:
+            split_date = e.data['obj']['data']['pubDate'].split('-')
+            if len(split_date) > 2:
+                pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
+        else:
+            logging.warning('publication data is missing pubDate')
+            logging.warning(e.data)
 
         # todo use date from twitter not today
         e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
