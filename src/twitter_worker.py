@@ -18,7 +18,7 @@ from event_stream.event_stream_consumer import EventStreamConsumer
 from event_stream.event_stream_producer import EventStreamProducer
 from event_stream.event import Event
 
-from dao import DAO
+from event_stream.dao import DAO
 
 
 # todo heartbeat kafka?
@@ -44,14 +44,18 @@ def score_time(x):
         x: the time to base the score on
     """
     if x and type(x) == int or type(x) == float:
-        y = (math.log(x) / math.log(1 / 7) + 3) * 10
+        y = 0
+        try:
+            y = (math.log(x) / math.log(1 / 7) + 3) * 10
+        except ValueError:
+            logging.warning('ValueError %s' % str(x))
         if y > 30:
             return 30
         if y < 1:
             return 1
         return y
     # else:
-        # logging.warning('missing x')
+    # logging.warning('missing x')
     return 1
 
 
@@ -121,7 +125,6 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
     def on_message(self, json_msg):
         """process a tweet
-
         Arguments:
             json_msg: the json_msg containing the event to be processed
         """
@@ -130,7 +133,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             self.dao = DAO()
             logging.warning(self.log + " create dao")
 
-        logging.warning(self.log + "on message twitter consumer")
+        # logging.warning(self.log + "on message twitter consumer")
 
         e = Event()
         e.from_json(json_msg)
@@ -142,16 +145,17 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['exclamation_mark_count'] = e.data['subj']['data']['text'].count("!")
         e.data['subj']['processed']['length'] = len(e.data['subj']['data']['text'])
 
-        split_date = e.data['obj']['data']['pubDate'].split('-')
-        pub_timestamp = 2021
-        if len(split_date) > 2:
-            pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
-        elif len(split_date) == 1:
-            pub_timestamp = date(int(split_date[0]), 1, 1)
-            split_date = [split_date[0], 1, 1]
+        pub_timestamp = date(2012, 1, 1)
+        if 'year' in e.data['obj']['data']:
+            pub_timestamp = date(e.data['obj']['data']['year'], 1, 1)
+
+        if 'pubDate' in e.data['obj']['data']:
+            split_date = e.data['obj']['data']['pubDate'].split('-')
+            if len(split_date) > 2:
+                pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
         else:
-            # todo fix
-            pub_timestamp = date(2012, 1, 1)
+            logging.warning('publication data is missing pubDate')
+            logging.warning(e.data)
 
         # todo use date from twitter not today
         e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
@@ -179,10 +183,10 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         context_a_domain = []
         context_a_entity = []
         # if 'context_annotations' in e.data['subj']['data']:
-            # for tag in e.data['subj']['data']['context_annotations']:
-                # context_a_domain.append(tag['name'])
-                # context_a_entity.append(tag['name'])
-                # logging.warning('context a domain append tag name %s' % tag)
+        # for tag in e.data['subj']['data']['context_annotations']:
+        # context_a_domain.append(tag['name'])
+        # context_a_entity.append(tag['name'])
+        # logging.warning('context a domain append tag name %s' % tag)
         e.data['subj']['processed']['context_domain'] = context_a_domain
         e.data['subj']['processed']['context_entity'] = context_a_entity
 
@@ -231,8 +235,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
         type_score = score_type(e.data['subj']['processed']['tweet_type'])
 
-        dt = datetime(int(split_date[0]), int(split_date[1]), int(split_date[2]))
-        time_score = score_time((datetime.today() - dt).days)
+        time_score = score_time(e.data['subj']['processed']['time_past'])
 
         # logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
 
@@ -291,6 +294,9 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             lang: language of the tweet
         """
         local_nlp = None
+        # https://spacy.io/universe/project/spacy-langdetect
+        # in case we have an undefined language
+        # todo modularize
         if lang is 'de':
             if not self.nlp[lang]:
                 self.nlp[lang] = spacy.load('de_core_news_md')
@@ -307,40 +313,36 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
                 self.nlp['en'].add_pipe('spacytextblob')
             local_nlp = self.nlp['en']
 
-        # todo use language from the publication not the tweet to compare?
-        # does language for comparison matter?
-        abstract_doc = local_nlp(abstract)
         doc = local_nlp(text)
 
         # Tokenization and lemmatization are done with the spacy nlp pipeline commands
         lemma_list = []
+
         for token in doc:
             lemma_list.append(token.lemma_)
-        # print("Tokenize+Lemmatize:")
-        # print(lemma_list)
 
         # Filter the stopword
+        # Remove punctuation, remove links, remove words with 1 or 2 letters
+        punctuations = "?:!.,;/"
         filtered_sentence = []
         for word in lemma_list:
             lexeme = local_nlp.vocab[word]
-            if lexeme.is_stop == False:
-                filtered_sentence.append(word)
+            if not lexeme.is_stop:
+                if word not in punctuations and 'http' not in word and len(word) > 2:
+                    filtered_sentence.append(word)
 
-        # Remove punctuation, remove links, remove words with 1 or 2 letters
-        punctuations = "?:!.,;"
-        for word in filtered_sentence:
-            # logging.warning('wordlen %s - %s ' % (word, str(len(word))))
-            if word in punctuations or 'http' in word or len(word) < 3:
-                # logging.warning('remove %s', word)
-                filtered_sentence.remove(word)
-
-
-        # remove count since it is just short?
+        # get most frequent words by and with count
         word_freq = Counter(filtered_sentence)
 
+        # todo use language from the publication not the tweet to compare?
+        # does language for comparison matter?
+        sim = 0
+        abstract_doc = local_nlp(abstract)
+        if abstract_doc and abstract_doc.vector_norm:
+            sim = doc.similarity(abstract_doc)
         result = {
             'sentiment': doc._.polarity,
-            'abstract': doc.similarity(abstract_doc),
+            'abstract': sim,
             'common_words': word_freq.most_common(10)
         }
 
@@ -359,3 +361,16 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             if user['id'] == author_id:
                 return user
         return None
+
+
+    @staticmethod
+    def start(i=0):
+        """start the consumer
+        """
+        esc = TwitterWorker(i)
+        logging.debug(TwitterWorker.log + 'Start %s' % str(i))
+        esc.consume()
+
+
+if __name__ == '__main__':
+    TwitterWorker.start(0)
