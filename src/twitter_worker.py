@@ -65,9 +65,9 @@ def score_type(type):
     Arguments:
         type: the type to base the score on
     """
-    if type == 'quote':
+    if type == 'quoted':
         return 7
-    if type == 'retweet':
+    if type == 'retweeted':
         return 2
     # original tweet
     return 10
@@ -86,7 +86,7 @@ def score_length(length):
     return 10
 
 
-@lru_cache(maxsize=100)
+@lru_cache(maxsize=10000)
 def geoencode(location):
     """geoencode a location
 
@@ -212,7 +212,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             e.data['subj']['processed']['verified'] = 10 if author_data['verified'] else 7
             e.data['subj']['processed']['name'] = author_data['username']
 
-            if 'bot' in author_data['username']:
+            if 'bot' in author_data['username'].lower() or 'bot' in e.data['subj']['data']['source']:
                 e.data['subj']['processed']['bot_rating'] = 1
             else:
                 e.data['subj']['processed']['bot_rating'] = 10
@@ -275,10 +275,10 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         Arguments:
             value: the value to be normalized
         """
-        if value > 0.5:
+        if value > 0.33:
             return 10
-        if value < -0.5:
-            return 1
+        if value < -0.33:
+            return 0
         return 5
 
     # https://towardsdatascience.com/text-normalization-with-spacy-and-nltk-1302ff430119
@@ -297,45 +297,36 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         # https://spacy.io/universe/project/spacy-langdetect
         # in case we have an undefined language
         # todo modularize
-        if lang is 'de':
+        # supported = ['de', 'es', 'en']
+        supported = ['de', 'es', 'en', 'fr', 'ja', 'it', 'ru', 'pl']
+        if 'en' not in lang and lang in supported:
             if not self.nlp[lang]:
-                self.nlp[lang] = spacy.load('de_core_news_md')
+                self.nlp[lang] = spacy.load(lang + '_core_news_md')
                 self.nlp[lang].add_pipe('spacytextblob')
             local_nlp = self.nlp[lang]
-        elif lang is 'es':
-            if not self.nlp[lang]:
-                self.nlp[lang] = spacy.load('es_core_news_md')
-                self.nlp[lang].add_pipe('spacytextblob')
-            local_nlp = self.nlp[lang]
-        else:
+        elif 'en' in lang:
             if not self.nlp['en']:
                 self.nlp['en'] = spacy.load('en_core_web_md')
                 self.nlp['en'].add_pipe('spacytextblob')
             local_nlp = self.nlp['en']
-
+        else:
+            # neutral results if we have an unknown language
+            logging.debug('unknown language')
+            return {
+                'sentiment': 5,
+                'abstract': 0,
+                'common_words': []
+            }
         doc = local_nlp(text)
 
-        # Tokenization and lemmatization are done with the spacy nlp pipeline commands
-        lemma_list = []
+        # https://www.trinnovative.de/blog/2020-09-08-natural-language-processing-mit-spacy.html
+        words = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct
+                 and not token.is_space and len(token.lemma_) > 2
+                 and (token.lemma_.isalpha() or token.lemma_.startswith('@'))
+                 and (token.pos_ == "NOUN" or token.pos_ == "PROPN" or token.pos_ == "VERB")]
 
-        for token in doc:
-            lemma_list.append(token.lemma_)
+        word_freq = Counter(words)
 
-        # Filter the stopword
-        # Remove punctuation, remove links, remove words with 1 or 2 letters
-        punctuations = "?:!.,;/"
-        filtered_sentence = []
-        for word in lemma_list:
-            lexeme = local_nlp.vocab[word]
-            if not lexeme.is_stop:
-                if word not in punctuations and 'http' not in word and len(word) > 2:
-                    filtered_sentence.append(word)
-
-        # get most frequent words by and with count
-        word_freq = Counter(filtered_sentence)
-
-        # todo use language from the publication not the tweet to compare?
-        # does language for comparison matter?
         sim = 0
         abstract_doc = local_nlp(abstract)
         if abstract_doc and abstract_doc.vector_norm:
@@ -361,7 +352,6 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             if user['id'] == author_id:
                 return user
         return None
-
 
     @staticmethod
     def start(i=0):
