@@ -1,6 +1,7 @@
 import logging
 import math
 import numbers
+import os
 import re
 import threading
 from datetime import date, datetime
@@ -11,7 +12,6 @@ from difflib import SequenceMatcher
 import requests
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
-
 from collections import Counter
 
 from event_stream.event_stream_consumer import EventStreamConsumer
@@ -67,9 +67,12 @@ def score_type(type):
     """
     if type == 'quoted':
         return 7
+    if type == 'replied_to':
+        return 9
     if type == 'retweeted':
         return 2
     # original tweet
+    logging.warning(type)
     return 10
 
 
@@ -115,14 +118,11 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
     log = "TwitterWorker "
     group_id = "twitter-worker"
     nlp = {
-        'de': None,
-        'es': None,
-        'en': None
+        'de': None, 'es': None, 'en': None, 'fr': None, 'ja': None, 'it': None, 'ru': None, 'pl': None
     }
     process_number = 1
 
     dao = None
-
     def on_message(self, json_msg):
         """process a tweet
         Arguments:
@@ -149,12 +149,12 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         if 'year' in e.data['obj']['data']:
             pub_timestamp = date(e.data['obj']['data']['year'], 1, 1)
 
-        if 'pubDate' in e.data['obj']['data']:
-            split_date = e.data['obj']['data']['pubDate'].split('-')
+        if 'pub_date' in e.data['obj']['data']:
+            split_date = e.data['obj']['data']['pub_date'].split('-')
             if len(split_date) > 2:
                 pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
         else:
-            logging.warning('publication data is missing pubDate')
+            logging.warning('publication data is missing pub_date')
             logging.warning(e.data)
 
         # todo use date from twitter not today
@@ -191,38 +191,43 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e.data['subj']['processed']['context_entity'] = context_a_entity
 
         # typeOfTweet (quote, retweet, tweet)
-        if not e.data['subj']['data']['referenced_tweets'][0]['type']:
-            e.data['subj']['processed']['tweet_type'] = 'tweet'
-        else:
+        if 'referenced_tweets' in e.data['subj']['data'] and len(e.data['subj']['data']['referenced_tweets']) > 0 \
+                and 'type' in e.data['subj']['data']['referenced_tweets'][0]:
             e.data['subj']['processed']['tweet_type'] = e.data['subj']['data']['referenced_tweets'][0]['type']
+        else:
+            e.data['subj']['processed']['tweet_type'] = 'tweet'
+
+        if e.data['subj']['data']['conversation_id'] == e.data['subj']['pid']:
+            logging.warning('conversation id matches id -> tweet')
 
         # author processing
         author_data = TwitterWorker.get_author_data(e.data['subj']['data'])
         # should be always true?
+        e.data['subj']['processed']['location'] = 'unknown'
+        e.data['subj']['processed']['followers'] = 0
+        e.data['subj']['processed']['bot_rating'] = 1
         if author_data:
             if 'location' in author_data:
                 temp_location = geoencode(author_data['location'])
                 if temp_location:
                     e.data['subj']['processed']['location'] = temp_location
-                else:
-                    e.data['subj']['processed']['location'] = 'unknown'
 
             e.data['subj']['processed']['followers'] = author_data['public_metrics']['followers_count']
 
             e.data['subj']['processed']['verified'] = 10 if author_data['verified'] else 7
             e.data['subj']['processed']['name'] = author_data['username']
 
-            if 'bot' in author_data['username'].lower() or 'bot' in e.data['subj']['data']['source']:
-                e.data['subj']['processed']['bot_rating'] = 1
-            else:
+            if 'bot' not in author_data['username'].lower() and 'bot' not in e.data['subj']['data']['source']:
                 e.data['subj']['processed']['bot_rating'] = 10
 
         content_score = 1
         text = e.data['subj']['data']['text'].strip().lower()
-        if text and e.data['obj']['data']['abstract'] and e.data['subj']['data']['lang']:
+        if text and 'abstract' in e.data['obj']['data'] and 'lang' in e.data['subj']['data']:
             spacy_result = self.spacy_process(text, e.data['obj']['data']['abstract'], e.data['subj']['data']['lang'])
             e.data['subj']['processed']['words'] = spacy_result['common_words']
+            e.data['subj']['processed']['contains_abstract_raw'] = spacy_result['abstract']
             e.data['subj']['processed']['contains_abstract'] = self.normalize_abstract_value(spacy_result['abstract'])
+            e.data['subj']['processed']['sentiment_raw'] = spacy_result['sentiment']
             e.data['subj']['processed']['sentiment'] = self.normalize_sentiment_value(spacy_result['sentiment'])
             content_score = e.data['subj']['processed']['contains_abstract'] + e.data['subj']['processed']['sentiment']
         content_score += score_length(e.data['subj']['processed']['length'])
@@ -261,7 +266,6 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         Arguments:
             value: the value to be normalized
         """
-
         if value < 0:
             return 10
         if value < 0.7:
@@ -293,6 +297,14 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             abstract: the publication abstract
             lang: language of the tweet
         """
+        result =  {
+                'sentiment': 0,
+                'abstract': 0,
+                'common_words': []
+        }
+        if not text or not abstract or not lang:
+            return result
+
         local_nlp = None
         # https://spacy.io/universe/project/spacy-langdetect
         # in case we have an undefined language
@@ -300,7 +312,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         # supported = ['de', 'es', 'en']
         supported = ['de', 'es', 'en', 'fr', 'ja', 'it', 'ru', 'pl']
         if 'en' not in lang and lang in supported:
-            if not self.nlp[lang]:
+            if lang not in self.nlp or not self.nlp[lang]:
                 self.nlp[lang] = spacy.load(lang + '_core_news_md')
                 self.nlp[lang].add_pipe('spacytextblob')
             local_nlp = self.nlp[lang]
@@ -312,11 +324,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         else:
             # neutral results if we have an unknown language
             logging.debug('unknown language')
-            return {
-                'sentiment': 5,
-                'abstract': 0,
-                'common_words': []
-            }
+            return result
         doc = local_nlp(text)
 
         # https://www.trinnovative.de/blog/2020-09-08-natural-language-processing-mit-spacy.html
@@ -358,7 +366,15 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         """start the consumer
         """
         esc = TwitterWorker(i)
-        logging.debug(TwitterWorker.log + 'Start %s' % str(i))
+
+        # for key, value in esc.nlp.items():
+        #     if key is 'en':
+        #         esc.nlp['en'] = spacy.load('en_core_web_md')
+        #     else:
+        #         esc.nlp[key] = spacy.load(key + '_core_news_md')
+        #     esc.nlp[key].add_pipe('spacytextblob')
+
+        logging.warning(TwitterWorker.log + 'Start %s' % str(i))
         esc.consume()
 
 
