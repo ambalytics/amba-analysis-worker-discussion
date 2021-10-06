@@ -72,7 +72,7 @@ def score_type(type):
     if type == 'retweeted':
         return 2
     # original tweet
-    logging.warning(type)
+    # logging.warning(type)
     return 10
 
 
@@ -149,7 +149,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         if 'year' in e.data['obj']['data']:
             pub_timestamp = date(e.data['obj']['data']['year'], 1, 1)
 
-        if 'pub_date' in e.data['obj']['data']:
+        if 'pub_date' in e.data['obj']['data'] and e.data['obj']['data']['pub_date']:
             split_date = e.data['obj']['data']['pub_date'].split('-')
             if len(split_date) > 2:
                 pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
@@ -329,7 +329,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
         # https://www.trinnovative.de/blog/2020-09-08-natural-language-processing-mit-spacy.html
         words = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct
-                 and not token.is_space and len(token.lemma_) > 2
+                 and not token.is_space and len(token.lemma_) > 2 and not token.lemma_.startswith('http')
                  and (token.lemma_.isalpha() or token.lemma_.startswith('@'))
                  and (token.pos_ == "NOUN" or token.pos_ == "PROPN" or token.pos_ == "VERB")]
 
