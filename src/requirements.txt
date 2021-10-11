@@ -1,4 +1,4 @@
-lxml
+# lxml
 amba-event-stream
 # pymongo
 # ruamel.yaml
