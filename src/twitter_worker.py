@@ -1,14 +1,10 @@
 import logging
 import math
-import numbers
 import os
+import sentry_sdk
 import re
-import threading
 from datetime import date, datetime
 from functools import lru_cache
-from multiprocessing.context import Process
-from difflib import SequenceMatcher
-
 import requests
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
@@ -19,11 +15,6 @@ from event_stream.event_stream_producer import EventStreamProducer
 from event_stream.event import Event
 
 from event_stream.dao import DAO
-
-
-# todo heartbeat kafka?
-# WARNING:kafka.coordinator:Heartbeat failed for group twitter-worker because it is rebalancing
-# WARNING:kafka.coordinator:Heartbeat failed ([Error 27] RebalanceInProgressError); retrying
 
 
 # score higher better
@@ -102,8 +93,6 @@ def geoencode(location):
         json_response = r.json()
         if json_response and isinstance(json_response, list) and len(json_response) > 0:
             json_object = json_response[0]
-            # logging.warning(json_object)
-            # logging.warning('c ' + json_object['address']['country_code'])
             if 'address' in json_object and 'country_code' in json_object['address']:
                 return json_object['address']['country_code']
     return None
@@ -123,6 +112,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
     process_number = 1
 
     dao = None
+
     def on_message(self, json_msg):
         """process a tweet
         Arguments:
@@ -138,126 +128,121 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         e = Event()
         e.from_json(json_msg)
 
-        # todo check that source_id is twitter
+        if e.get('source_id') == 'twitter':
+            e.data['subj']['processed'] = {}
+            e.data['subj']['processed']['question_mark_count'] = e.data['subj']['data']['text'].count("?")
+            e.data['subj']['processed']['exclamation_mark_count'] = e.data['subj']['data']['text'].count("!")
+            e.data['subj']['processed']['length'] = len(e.data['subj']['data']['text'])
 
-        e.data['subj']['processed'] = {}
-        e.data['subj']['processed']['question_mark_count'] = e.data['subj']['data']['text'].count("?")
-        e.data['subj']['processed']['exclamation_mark_count'] = e.data['subj']['data']['text'].count("!")
-        e.data['subj']['processed']['length'] = len(e.data['subj']['data']['text'])
+            pub_timestamp = date(2012, 1, 1)
+            if 'year' in e.data['obj']['data']:
+                pub_timestamp = date(e.data['obj']['data']['year'], 1, 1)
 
-        pub_timestamp = date(2012, 1, 1)
-        if 'year' in e.data['obj']['data']:
-            pub_timestamp = date(e.data['obj']['data']['year'], 1, 1)
+            if 'pub_date' in e.data['obj']['data'] and e.data['obj']['data']['pub_date']:
+                split_date = e.data['obj']['data']['pub_date'].split('-')
+                if len(split_date) > 2:
+                    pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
+            else:
+                logging.warning('publication data is missing pub_date')
+                logging.warning(e.data)
 
-        if 'pub_date' in e.data['obj']['data'] and e.data['obj']['data']['pub_date']:
-            split_date = e.data['obj']['data']['pub_date'].split('-')
-            if len(split_date) > 2:
-                pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
-        else:
-            logging.warning('publication data is missing pub_date')
-            logging.warning(e.data)
+            # todo use date from twitter not today
+            e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
 
-        # todo use date from twitter not today
-        e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
+            hashtags = []
+            annotations = []
+            a_types = []
 
-        hashtags = []
-        annotations = []
-        a_types = []
+            if 'entities' in e.data['subj']['data']:
+                if 'hashtags' in e.data['subj']['data']['entities']:
+                    for tag in e.data['subj']['data']['entities']['hashtags']:
+                        hashtags.append(normalize(tag['tag']))
 
-        if 'entities' in e.data['subj']['data']:
-            if 'hashtags' in e.data['subj']['data']['entities']:
-                for tag in e.data['subj']['data']['entities']['hashtags']:
-                    hashtags.append(normalize(tag['tag']))
+                if 'annotations' in e.data['subj']['data']['entities']:
+                    for tag in e.data['subj']['data']['entities']['annotations']:
+                        annotations.append(tag['normalized_text'])
+                        a_types.append(tag['type'])
 
-            # todo filter annotation types
-            if 'annotations' in e.data['subj']['data']['entities']:
-                for tag in e.data['subj']['data']['entities']['annotations']:
-                    annotations.append(tag['normalized_text'])
-                    a_types.append(tag['type'])
+            e.data['subj']['processed']['hashtags'] = hashtags
+            e.data['subj']['processed']['annotations'] = annotations
+            e.data['subj']['processed']['a_types'] = a_types
 
-        e.data['subj']['processed']['hashtags'] = hashtags
-        e.data['subj']['processed']['annotations'] = annotations
-        e.data['subj']['processed']['a_types'] = a_types
+            context_a_domain = []
+            context_a_entity = []
+            e.data['subj']['processed']['context_domain'] = context_a_domain
+            e.data['subj']['processed']['context_entity'] = context_a_entity
 
-        # todo filter context annotation types
-        context_a_domain = []
-        context_a_entity = []
-        # if 'context_annotations' in e.data['subj']['data']:
-        # for tag in e.data['subj']['data']['context_annotations']:
-        # context_a_domain.append(tag['name'])
-        # context_a_entity.append(tag['name'])
-        # logging.warning('context a domain append tag name %s' % tag)
-        e.data['subj']['processed']['context_domain'] = context_a_domain
-        e.data['subj']['processed']['context_entity'] = context_a_entity
+            # typeOfTweet (quote, retweet, tweet)
+            if 'referenced_tweets' in e.data['subj']['data'] and len(e.data['subj']['data']['referenced_tweets']) > 0 \
+                    and 'type' in e.data['subj']['data']['referenced_tweets'][0]:
+                e.data['subj']['processed']['tweet_type'] = e.data['subj']['data']['referenced_tweets'][0]['type']
+            else:
+                e.data['subj']['processed']['tweet_type'] = 'tweet'
 
-        # typeOfTweet (quote, retweet, tweet)
-        if 'referenced_tweets' in e.data['subj']['data'] and len(e.data['subj']['data']['referenced_tweets']) > 0 \
-                and 'type' in e.data['subj']['data']['referenced_tweets'][0]:
-            e.data['subj']['processed']['tweet_type'] = e.data['subj']['data']['referenced_tweets'][0]['type']
-        else:
-            e.data['subj']['processed']['tweet_type'] = 'tweet'
+            if e.data['subj']['data']['conversation_id'] == e.data['subj']['pid']:
+                logging.warning('conversation id matches id -> tweet')
 
-        if e.data['subj']['data']['conversation_id'] == e.data['subj']['pid']:
-            logging.warning('conversation id matches id -> tweet')
+            # author processing
+            author_data = TwitterWorker.get_author_data(e.data['subj']['data'])
+            # should be always true?
+            e.data['subj']['processed']['location'] = 'unknown'
+            e.data['subj']['processed']['followers'] = 0
+            e.data['subj']['processed']['bot_rating'] = 1
+            if author_data:
+                if 'location' in author_data:
+                    temp_location = geoencode(author_data['location'])
+                    if temp_location:
+                        e.data['subj']['processed']['location'] = temp_location
 
-        # author processing
-        author_data = TwitterWorker.get_author_data(e.data['subj']['data'])
-        # should be always true?
-        e.data['subj']['processed']['location'] = 'unknown'
-        e.data['subj']['processed']['followers'] = 0
-        e.data['subj']['processed']['bot_rating'] = 1
-        if author_data:
-            if 'location' in author_data:
-                temp_location = geoencode(author_data['location'])
-                if temp_location:
-                    e.data['subj']['processed']['location'] = temp_location
+                e.data['subj']['processed']['followers'] = author_data['public_metrics']['followers_count']
 
-            e.data['subj']['processed']['followers'] = author_data['public_metrics']['followers_count']
+                e.data['subj']['processed']['verified'] = 10 if author_data['verified'] else 7
+                e.data['subj']['processed']['name'] = author_data['username']
 
-            e.data['subj']['processed']['verified'] = 10 if author_data['verified'] else 7
-            e.data['subj']['processed']['name'] = author_data['username']
+                if 'bot' not in author_data['username'].lower() and 'bot' not in e.data['subj']['data']['source']:
+                    e.data['subj']['processed']['bot_rating'] = 10
 
-            if 'bot' not in author_data['username'].lower() and 'bot' not in e.data['subj']['data']['source']:
-                e.data['subj']['processed']['bot_rating'] = 10
+            content_score = 1
+            text = e.data['subj']['data']['text'].strip().lower()
+            if text and 'abstract' in e.data['obj']['data'] and 'lang' in e.data['subj']['data']:
+                spacy_result = self.spacy_process(text, e.data['obj']['data']['abstract'],
+                                                  e.data['subj']['data']['lang'])
+                e.data['subj']['processed']['words'] = spacy_result['common_words']
+                e.data['subj']['processed']['contains_abstract_raw'] = spacy_result['abstract']
+                e.data['subj']['processed']['contains_abstract'] = self.normalize_abstract_value(
+                    spacy_result['abstract'])
+                e.data['subj']['processed']['sentiment_raw'] = spacy_result['sentiment']
+                e.data['subj']['processed']['sentiment'] = self.normalize_sentiment_value(spacy_result['sentiment'])
+                content_score = e.data['subj']['processed']['contains_abstract'] + e.data['subj']['processed'][
+                    'sentiment']
+            content_score += score_length(e.data['subj']['processed']['length'])
 
-        content_score = 1
-        text = e.data['subj']['data']['text'].strip().lower()
-        if text and 'abstract' in e.data['obj']['data'] and 'lang' in e.data['subj']['data']:
-            spacy_result = self.spacy_process(text, e.data['obj']['data']['abstract'], e.data['subj']['data']['lang'])
-            e.data['subj']['processed']['words'] = spacy_result['common_words']
-            e.data['subj']['processed']['contains_abstract_raw'] = spacy_result['abstract']
-            e.data['subj']['processed']['contains_abstract'] = self.normalize_abstract_value(spacy_result['abstract'])
-            e.data['subj']['processed']['sentiment_raw'] = spacy_result['sentiment']
-            e.data['subj']['processed']['sentiment'] = self.normalize_sentiment_value(spacy_result['sentiment'])
-            content_score = e.data['subj']['processed']['contains_abstract'] + e.data['subj']['processed']['sentiment']
-        content_score += score_length(e.data['subj']['processed']['length'])
+            user_score = e.data['subj']['processed']['bot_rating']
+            if e.data['subj']['processed']['followers'] and type(e.data['subj']['processed']['followers']) == int \
+                    or type(e.data['subj']['processed']['followers']) == float:
+                user_score += math.log(e.data['subj']['processed']['followers'], 2)
+            user_score += e.data['subj']['processed']['verified']
 
-        user_score = e.data['subj']['processed']['bot_rating']
-        if e.data['subj']['processed']['followers'] and type(e.data['subj']['processed']['followers']) == int \
-                or type(e.data['subj']['processed']['followers']) == float:
-            user_score += math.log(e.data['subj']['processed']['followers'], 2)
-        user_score += e.data['subj']['processed']['verified']
+            type_score = score_type(e.data['subj']['processed']['tweet_type'])
 
-        type_score = score_type(e.data['subj']['processed']['tweet_type'])
+            time_score = score_time(e.data['subj']['processed']['time_past'])
 
-        time_score = score_time(e.data['subj']['processed']['time_past'])
+            # logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
 
-        # logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
+            e.data['subj']['processed']['time_score'] = time_score
+            e.data['subj']['processed']['type_score'] = type_score
+            e.data['subj']['processed']['user_score'] = user_score
+            e.data['subj']['processed']['content_score'] = content_score
 
-        e.data['subj']['processed']['time_score'] = time_score
-        e.data['subj']['processed']['type_score'] = type_score
-        e.data['subj']['processed']['user_score'] = user_score
-        e.data['subj']['processed']['content_score'] = content_score
+            weights = {'time': 1, 'type': 1, 'user': 1, 'content': 1}
+            e.data['subj']['processed']['score'] = weights['time'] * time_score
+            e.data['subj']['processed']['score'] += weights['type'] * type_score
+            e.data['subj']['processed']['score'] += weights['user'] * user_score
+            e.data['subj']['processed']['score'] += weights['content'] * content_score
 
-        weights = {'time': 1, 'type': 1, 'user': 1, 'content': 1}
-        e.data['subj']['processed']['score'] = weights['time'] * time_score
-        e.data['subj']['processed']['score'] += weights['type'] * type_score
-        e.data['subj']['processed']['score'] += weights['user'] * user_score
-        e.data['subj']['processed']['score'] += weights['content'] * content_score
-
-        e.set('state', 'processed')
-        self.dao.save_discussion_data(e.data)
-        self.publish(e)
+            e.set('state', 'processed')
+            self.dao.save_discussion_data(e.data)
+            self.publish(e)
 
     @staticmethod
     def normalize_abstract_value(value):
@@ -285,10 +270,6 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             return 0
         return 5
 
-    # https://towardsdatascience.com/text-normalization-with-spacy-and-nltk-1302ff430119
-    # https://towardsdatascience.com/twitter-sentiment-analysis-a-tale-of-stream-processing-8fd92e19a6e6
-    # todo switch depending on languages
-    # remove rt, min word letter count 3?, remove links
     def spacy_process(self, text, abstract, lang):
         """process a tweet using spacy
 
@@ -297,10 +278,10 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             abstract: the publication abstract
             lang: language of the tweet
         """
-        result =  {
-                'sentiment': 0,
-                'abstract': 0,
-                'common_words': []
+        result = {
+            'sentiment': 0,
+            'abstract': 0,
+            'common_words': []
         }
         if not text or not abstract or not lang:
             return result
@@ -308,8 +289,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         local_nlp = None
         # https://spacy.io/universe/project/spacy-langdetect
         # in case we have an undefined language
-        # todo modularize
-        # supported = ['de', 'es', 'en']
+
         supported = ['de', 'es', 'en', 'fr', 'ja', 'it', 'ru', 'pl']
         if 'en' not in lang and lang in supported:
             if lang not in self.nlp or not self.nlp[lang]:
@@ -325,27 +305,38 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             # neutral results if we have an unknown language
             logging.debug('unknown language')
             return result
-        doc = local_nlp(text)
 
         # https://www.trinnovative.de/blog/2020-09-08-natural-language-processing-mit-spacy.html
-        words = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct
-                 and not token.is_space and len(token.lemma_) > 2 and not token.lemma_.startswith('http')
-                 and (token.lemma_.isalpha() or token.lemma_.startswith('@'))
-                 and (token.pos_ == "NOUN" or token.pos_ == "PROPN" or token.pos_ == "VERB")]
+        words = TwitterWorker.process_text_for_similarity(local_nlp, text)
+        abstract_words = TwitterWorker.process_text_for_similarity(local_nlp, abstract)
 
         word_freq = Counter(words)
 
         sim = 0
-        abstract_doc = local_nlp(abstract)
-        if abstract_doc and abstract_doc.vector_norm:
-            sim = doc.similarity(abstract_doc)
+        tweet_doc = local_nlp(" ".join(words))
+        abstract_doc = local_nlp(" ".join(abstract_words))
+
+        if abstract_doc:
+            sim = tweet_doc.similarity(abstract_doc)
+
         result = {
-            'sentiment': doc._.polarity,
+            'sentiment': tweet_doc._.polarity,
             'abstract': sim,
             'common_words': word_freq.most_common(10)
         }
 
         return result
+
+    @staticmethod
+    def process_text_for_similarity(nlp, text):
+        doc = nlp(text)
+        if doc:
+            return [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct
+                    and not token.is_space and len(token.lemma_) > 2 and not token.lemma_.lower().startswith('http')
+                    and token.lemma_.lower() != 'the'
+                    and (token.lemma_.isalpha() or token.lemma_.startswith('@'))
+                    and (token.pos_ == "NOUN" or token.pos_ == "PROPN" or token.pos_ == "VERB")]
+        return []
 
     @staticmethod
     def get_author_data(tweet_data):
@@ -379,4 +370,11 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
 
 if __name__ == '__main__':
+    SENTRY_DSN = os.environ.get('SENTRY_DSN')
+    SENTRY_TRACE_SAMPLE_RATE = os.environ.get('SENTRY_TRACE_SAMPLE_RATE')
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        traces_sample_rate=SENTRY_TRACE_SAMPLE_RATE
+    )
+
     TwitterWorker.start(0)

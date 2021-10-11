@@ -4,6 +4,7 @@ WORKDIR /src
 COPY . .
 
 RUN pip install --upgrade pip
+RUN pip install --upgrade sentry-sdk
 COPY src/requirements.txt /requirements.txt
 RUN pip install -r src/requirements.txt ;\
  python3 -m spacy download en_core_web_md ;\
