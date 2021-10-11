@@ -142,9 +142,6 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
                 split_date = e.data['obj']['data']['pub_date'].split('-')
                 if len(split_date) > 2:
                     pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
-            else:
-                logging.warning('publication data is missing pub_date')
-                logging.warning(e.data)
 
             # todo use date from twitter not today
             e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
