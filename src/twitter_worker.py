@@ -316,8 +316,9 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         if abstract_doc:
             sim = tweet_doc.similarity(abstract_doc)
 
+        sentiment = local_nlp(text)._.polarity
         result = {
-            'sentiment': tweet_doc._.polarity,
+            'sentiment': sentiment,
             'abstract': sim,
             'common_words': word_freq.most_common(10)
         }
