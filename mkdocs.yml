@@ -8,7 +8,6 @@ nav:
     - Home: index.md
     - Code Reference:
       - twitter worker: twitter_worker_ref.md
-      - twitter supervisor: twitter_supervisor_ref.md
 
 theme:
   name: material
