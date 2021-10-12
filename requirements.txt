@@ -1,8 +1,8 @@
-lxml
 amba-event-stream
 requests
 spacy
 spacytextblob
+sentry_sdk
 mkdocs
 mkdocs-material
 mkdocstrings

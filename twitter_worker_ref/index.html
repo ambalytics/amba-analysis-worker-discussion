@@ -14,7 +14,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.3">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.802231af.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.5143246d.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -80,7 +80,9 @@
       
     </div>
     
-      <header class="md-header" data-md-component="header">
+      
+
+<header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="Amba Analysis Worker Discussion" class="md-header__button md-logo" aria-label="Amba Analysis Worker Discussion" data-md-component="logo">
       
@@ -159,11 +161,14 @@
       </div>
     
   </nav>
+  
 </header>
     
     <div class="md-container" data-md-component="container">
       
       
+        
+          
         
       
       <main class="md-main" data-md-component="main">
@@ -233,10 +238,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
       
-      <label class="md-nav__link" for="__nav_2">
-        Code Reference
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Code Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="Code Reference" data-md-level="1">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
@@ -245,6 +254,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
     
@@ -381,18 +391,7 @@
     </li>
   
 
-          
             
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../twitter_supervisor_ref/" class="md-nav__link">
-        twitter supervisor
-      </a>
-    </li>
-  
-
           
         </ul>
       </nav>
@@ -560,7 +559,9 @@
 
 
 <h2 id="twitter_worker.TwitterWorker" class="doc doc-heading">
-        <code>TwitterWorker</code>
+        <code>
+TwitterWorker            (<span title="event_stream.event_stream_consumer.EventStreamConsumer">EventStreamConsumer</span>, <span title="event_stream.event_stream_producer.EventStreamProducer">EventStreamProducer</span>)
+        </code>
 
 
 
@@ -621,7 +622,7 @@
   <tbody>
       <tr>
         <td><code>tweet_data</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the tweet data we want an author from</p></td>
         <td><em>required</em></td>
       </tr>
@@ -680,7 +681,7 @@
   <tbody>
       <tr>
         <td><code>value</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the value to be normalized</p></td>
         <td><em>required</em></td>
       </tr>
@@ -695,7 +696,6 @@
 <span class="sd">    Arguments:</span>
 <span class="sd">        value: the value to be normalized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">10</span>
     <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mf">0.7</span><span class="p">:</span>
@@ -739,7 +739,7 @@
   <tbody>
       <tr>
         <td><code>value</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the value to be normalized</p></td>
         <td><em>required</em></td>
       </tr>
@@ -754,10 +754,10 @@
 <span class="sd">    Arguments:</span>
 <span class="sd">        value: the value to be normalized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.33</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">10</span>
-    <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.33</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
     <span class="k">return</span> <span class="mi">5</span>
 </code></pre></div>
         </details>
@@ -794,7 +794,7 @@
   <tbody>
       <tr>
         <td><code>json_msg</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the json_msg containing the event to be processed</p></td>
         <td><em>required</em></td>
       </tr>
@@ -817,126 +817,124 @@
     <span class="n">e</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
     <span class="n">e</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_msg</span><span class="p">)</span>
 
-    <span class="c1"># todo check that source_id is twitter</span>
+    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;source_id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;twitter&#39;</span><span class="p">:</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;question_mark_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;exclamation_mark_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;!&quot;</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
 
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;question_mark_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;exclamation_mark_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;!&quot;</span><span class="p">)</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
+        <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;year&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+            <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;year&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
-        <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;pub_date&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;pub_date&#39;</span><span class="p">]:</span>
+            <span class="n">split_date</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;pub_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_date</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
 
-    <span class="k">if</span> <span class="s1">&#39;pubDate&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
-        <span class="n">split_date</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;pubDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_date</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;publication data is missing pubDate&#39;</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="c1"># todo use date from twitter not today</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">pub_timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
 
-    <span class="c1"># todo use date from twitter not today</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">pub_timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
+        <span class="n">hashtags</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">annotations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">a_types</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="n">hashtags</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">annotations</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">a_types</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="s1">&#39;entities&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s1">&#39;hashtags&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">][</span><span class="s1">&#39;hashtags&#39;</span><span class="p">]:</span>
+                    <span class="n">hashtags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalize</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="s1">&#39;tag&#39;</span><span class="p">]))</span>
 
-    <span class="k">if</span> <span class="s1">&#39;entities&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="s1">&#39;hashtags&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">]:</span>
-            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">][</span><span class="s1">&#39;hashtags&#39;</span><span class="p">]:</span>
-                <span class="n">hashtags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalize</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="s1">&#39;tag&#39;</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="s1">&#39;annotations&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">][</span><span class="s1">&#39;annotations&#39;</span><span class="p">]:</span>
+                    <span class="n">annotations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="s1">&#39;normalized_text&#39;</span><span class="p">])</span>
+                    <span class="n">a_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
 
-        <span class="c1"># todo filter annotation types</span>
-        <span class="k">if</span> <span class="s1">&#39;annotations&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">]:</span>
-            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;entities&#39;</span><span class="p">][</span><span class="s1">&#39;annotations&#39;</span><span class="p">]:</span>
-                <span class="n">annotations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="s1">&#39;normalized_text&#39;</span><span class="p">])</span>
-                <span class="n">a_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;hashtags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashtags</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;annotations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annotations</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;a_types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a_types</span>
 
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;hashtags&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashtags</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;annotations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">annotations</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;a_types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a_types</span>
+        <span class="n">context_a_domain</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">context_a_entity</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;context_domain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context_a_domain</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;context_entity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context_a_entity</span>
 
-    <span class="c1"># todo filter context annotation types</span>
-    <span class="n">context_a_domain</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">context_a_entity</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># if &#39;context_annotations&#39; in e.data[&#39;subj&#39;][&#39;data&#39;]:</span>
-    <span class="c1"># for tag in e.data[&#39;subj&#39;][&#39;data&#39;][&#39;context_annotations&#39;]:</span>
-    <span class="c1"># context_a_domain.append(tag[&#39;name&#39;])</span>
-    <span class="c1"># context_a_entity.append(tag[&#39;name&#39;])</span>
-    <span class="c1"># logging.warning(&#39;context a domain append tag name %s&#39; % tag)</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;context_domain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context_a_domain</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;context_entity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context_a_entity</span>
-
-    <span class="c1"># typeOfTweet (quote, retweet, tweet)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;referenced_tweets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]:</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tweet&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;referenced_tweets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
-
-    <span class="c1"># author processing</span>
-    <span class="n">author_data</span> <span class="o">=</span> <span class="n">TwitterWorker</span><span class="o">.</span><span class="n">get_author_data</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
-    <span class="c1"># should be always true?</span>
-    <span class="k">if</span> <span class="n">author_data</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;location&#39;</span> <span class="ow">in</span> <span class="n">author_data</span><span class="p">:</span>
-            <span class="n">temp_location</span> <span class="o">=</span> <span class="n">geoencode</span><span class="p">(</span><span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">temp_location</span><span class="p">:</span>
-                <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_location</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
-
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;public_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;followers_count&#39;</span><span class="p">]</span>
-
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="k">if</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">7</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="s1">&#39;bot&#39;</span> <span class="ow">in</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]:</span>
-            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;bot_rating&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="c1"># typeOfTweet (quote, retweet, tweet)</span>
+        <span class="k">if</span> <span class="s1">&#39;referenced_tweets&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;referenced_tweets&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span> \
+                <span class="ow">and</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;referenced_tweets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;referenced_tweets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;bot_rating&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tweet&#39;</span>
 
-    <span class="n">content_score</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">text</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">text</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;abstract&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;lang&#39;</span><span class="p">]:</span>
-        <span class="n">spacy_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spacy_process</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;abstract&#39;</span><span class="p">],</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;lang&#39;</span><span class="p">])</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;words&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy_result</span><span class="p">[</span><span class="s1">&#39;common_words&#39;</span><span class="p">]</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;contains_abstract&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_abstract_value</span><span class="p">(</span><span class="n">spacy_result</span><span class="p">[</span><span class="s1">&#39;abstract&#39;</span><span class="p">])</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;sentiment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_sentiment_value</span><span class="p">(</span><span class="n">spacy_result</span><span class="p">[</span><span class="s1">&#39;sentiment&#39;</span><span class="p">])</span>
-        <span class="n">content_score</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;contains_abstract&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;sentiment&#39;</span><span class="p">]</span>
-    <span class="n">content_score</span> <span class="o">+=</span> <span class="n">score_length</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;length&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;conversation_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;pid&#39;</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;conversation id matches id -&gt; tweet&#39;</span><span class="p">)</span>
 
-    <span class="n">user_score</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;bot_rating&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span> \
-            <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="n">user_score</span> <span class="o">+=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">user_score</span> <span class="o">+=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span>
+        <span class="c1"># author processing</span>
+        <span class="n">author_data</span> <span class="o">=</span> <span class="n">TwitterWorker</span><span class="o">.</span><span class="n">get_author_data</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
+        <span class="c1"># should be always true?</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;bot_rating&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">author_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;location&#39;</span> <span class="ow">in</span> <span class="n">author_data</span><span class="p">:</span>
+                <span class="n">temp_location</span> <span class="o">=</span> <span class="n">geoencode</span><span class="p">(</span><span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">temp_location</span><span class="p">:</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_location</span>
 
-    <span class="n">type_score</span> <span class="o">=</span> <span class="n">score_type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">])</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;public_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;followers_count&#39;</span><span class="p">]</span>
 
-    <span class="n">time_score</span> <span class="o">=</span> <span class="n">score_time</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">])</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="k">if</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">7</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span>
 
-    <span class="c1"># logging.debug(&#39;score %s - %s - %s - %s&#39; % (time_score, type_score, user_score, content_score))</span>
+            <span class="k">if</span> <span class="s1">&#39;bot&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">and</span> <span class="s1">&#39;bot&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;source&#39;</span><span class="p">]:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;bot_rating&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
 
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_score</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;type_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_score</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;user_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_score</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;content_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_score</span>
+        <span class="n">content_score</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="ow">and</span> <span class="s1">&#39;abstract&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="s1">&#39;lang&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+            <span class="n">spacy_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spacy_process</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;abstract&#39;</span><span class="p">],</span>
+                                              <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;lang&#39;</span><span class="p">])</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;words&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy_result</span><span class="p">[</span><span class="s1">&#39;common_words&#39;</span><span class="p">]</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;contains_abstract_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy_result</span><span class="p">[</span><span class="s1">&#39;abstract&#39;</span><span class="p">]</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;contains_abstract&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_abstract_value</span><span class="p">(</span>
+                <span class="n">spacy_result</span><span class="p">[</span><span class="s1">&#39;abstract&#39;</span><span class="p">])</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;sentiment_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy_result</span><span class="p">[</span><span class="s1">&#39;sentiment&#39;</span><span class="p">]</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;sentiment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_sentiment_value</span><span class="p">(</span><span class="n">spacy_result</span><span class="p">[</span><span class="s1">&#39;sentiment&#39;</span><span class="p">])</span>
+            <span class="n">content_score</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;contains_abstract&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span>
+                <span class="s1">&#39;sentiment&#39;</span><span class="p">]</span>
+        <span class="n">content_score</span> <span class="o">+=</span> <span class="n">score_length</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;length&#39;</span><span class="p">])</span>
 
-    <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">time_score</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">type_score</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">user_score</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">content_score</span>
+        <span class="n">user_score</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;bot_rating&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">int</span> \
+                <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="n">user_score</span> <span class="o">+=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">user_score</span> <span class="o">+=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span>
 
-    <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="s1">&#39;processed&#39;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">dao</span><span class="o">.</span><span class="n">save_discussion_data</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="n">type_score</span> <span class="o">=</span> <span class="n">score_type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">])</span>
+
+        <span class="n">time_score</span> <span class="o">=</span> <span class="n">score_time</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">])</span>
+
+        <span class="c1"># logging.debug(&#39;score %s - %s - %s - %s&#39; % (time_score, type_score, user_score, content_score))</span>
+
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_score</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;type_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_score</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;user_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_score</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;content_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_score</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">time_score</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">type_score</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">user_score</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">content_score</span>
+
+        <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="s1">&#39;processed&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dao</span><span class="o">.</span><span class="n">save_discussion_data</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
 
   </div>
+
 
 
 
@@ -967,19 +965,19 @@
   <tbody>
       <tr>
         <td><code>text</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the tweet text</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
         <td><code>abstract</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the publication abstract</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
         <td><code>lang</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>language of the tweet</p></td>
         <td><em>required</em></td>
       </tr>
@@ -995,55 +993,50 @@
 <span class="sd">        abstract: the publication abstract</span>
 <span class="sd">        lang: language of the tweet</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;sentiment&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;abstract&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;common_words&#39;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">abstract</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">lang</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result</span>
+
     <span class="n">local_nlp</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1"># https://spacy.io/universe/project/spacy-langdetect</span>
     <span class="c1"># in case we have an undefined language</span>
-    <span class="c1"># todo modularize</span>
-    <span class="k">if</span> <span class="n">lang</span> <span class="ow">is</span> <span class="s1">&#39;de&#39;</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;de_core_news_md&#39;</span><span class="p">)</span>
+
+    <span class="n">supported</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;de&#39;</span><span class="p">,</span> <span class="s1">&#39;es&#39;</span><span class="p">,</span> <span class="s1">&#39;en&#39;</span><span class="p">,</span> <span class="s1">&#39;fr&#39;</span><span class="p">,</span> <span class="s1">&#39;ja&#39;</span><span class="p">,</span> <span class="s1">&#39;it&#39;</span><span class="p">,</span> <span class="s1">&#39;ru&#39;</span><span class="p">,</span> <span class="s1">&#39;pl&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;en&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lang</span> <span class="ow">and</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">supported</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">lang</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">lang</span> <span class="o">+</span> <span class="s1">&#39;_core_news_md&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span><span class="o">.</span><span class="n">add_pipe</span><span class="p">(</span><span class="s1">&#39;spacytextblob&#39;</span><span class="p">)</span>
         <span class="n">local_nlp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="n">lang</span> <span class="ow">is</span> <span class="s1">&#39;es&#39;</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;es_core_news_md&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span><span class="o">.</span><span class="n">add_pipe</span><span class="p">(</span><span class="s1">&#39;spacytextblob&#39;</span><span class="p">)</span>
-        <span class="n">local_nlp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="n">lang</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="s1">&#39;en&#39;</span> <span class="ow">in</span> <span class="n">lang</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="s1">&#39;en&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="s1">&#39;en&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;en_core_web_md&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="s1">&#39;en&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_pipe</span><span class="p">(</span><span class="s1">&#39;spacytextblob&#39;</span><span class="p">)</span>
         <span class="n">local_nlp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlp</span><span class="p">[</span><span class="s1">&#39;en&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># neutral results if we have an unknown language</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;unknown language&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
 
-    <span class="n">doc</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="c1"># https://www.trinnovative.de/blog/2020-09-08-natural-language-processing-mit-spacy.html</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">TwitterWorker</span><span class="o">.</span><span class="n">process_text_for_similarity</span><span class="p">(</span><span class="n">local_nlp</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">abstract_words</span> <span class="o">=</span> <span class="n">TwitterWorker</span><span class="o">.</span><span class="n">process_text_for_similarity</span><span class="p">(</span><span class="n">local_nlp</span><span class="p">,</span> <span class="n">abstract</span><span class="p">)</span>
 
-    <span class="c1"># Tokenization and lemmatization are done with the spacy nlp pipeline commands</span>
-    <span class="n">lemma_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">word_freq</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">:</span>
-        <span class="n">lemma_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">lemma_</span><span class="p">)</span>
-
-    <span class="c1"># Filter the stopword</span>
-    <span class="c1"># Remove punctuation, remove links, remove words with 1 or 2 letters</span>
-    <span class="n">punctuations</span> <span class="o">=</span> <span class="s2">&quot;?:!.,;/&quot;</span>
-    <span class="n">filtered_sentence</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">lemma_list</span><span class="p">:</span>
-        <span class="n">lexeme</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="o">.</span><span class="n">vocab</span><span class="p">[</span><span class="n">word</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">lexeme</span><span class="o">.</span><span class="n">is_stop</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">word</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">punctuations</span> <span class="ow">and</span> <span class="s1">&#39;http&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">word</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="n">filtered_sentence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
-
-    <span class="c1"># get most frequent words by and with count</span>
-    <span class="n">word_freq</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">filtered_sentence</span><span class="p">)</span>
-
-    <span class="c1"># todo use language from the publication not the tweet to compare?</span>
-    <span class="c1"># does language for comparison matter?</span>
     <span class="n">sim</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">abstract_doc</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="p">(</span><span class="n">abstract</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">abstract_doc</span> <span class="ow">and</span> <span class="n">abstract_doc</span><span class="o">.</span><span class="n">vector_norm</span><span class="p">:</span>
-        <span class="n">sim</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="n">abstract_doc</span><span class="p">)</span>
+    <span class="n">tweet_doc</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">words</span><span class="p">))</span>
+    <span class="n">abstract_doc</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abstract_words</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">abstract_doc</span><span class="p">:</span>
+        <span class="n">sim</span> <span class="o">=</span> <span class="n">tweet_doc</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="n">abstract_doc</span><span class="p">)</span>
+
+    <span class="n">sentiment</span> <span class="o">=</span> <span class="n">local_nlp</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">_</span><span class="o">.</span><span class="n">polarity</span>
     <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;sentiment&#39;</span><span class="p">:</span> <span class="n">doc</span><span class="o">.</span><span class="n">_</span><span class="o">.</span><span class="n">polarity</span><span class="p">,</span>
+        <span class="s1">&#39;sentiment&#39;</span><span class="p">:</span> <span class="n">sentiment</span><span class="p">,</span>
         <span class="s1">&#39;abstract&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="p">,</span>
         <span class="s1">&#39;common_words&#39;</span><span class="p">:</span> <span class="n">word_freq</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
     <span class="p">}</span>
@@ -1081,7 +1074,15 @@
     <span class="sd">&quot;&quot;&quot;start the consumer</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">esc</span> <span class="o">=</span> <span class="n">TwitterWorker</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">TwitterWorker</span><span class="o">.</span><span class="n">log</span> <span class="o">+</span> <span class="s1">&#39;Start </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+    <span class="c1"># for key, value in esc.nlp.items():</span>
+    <span class="c1">#     if key is &#39;en&#39;:</span>
+    <span class="c1">#         esc.nlp[&#39;en&#39;] = spacy.load(&#39;en_core_web_md&#39;)</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         esc.nlp[key] = spacy.load(key + &#39;_core_news_md&#39;)</span>
+    <span class="c1">#     esc.nlp[key].add_pipe(&#39;spacytextblob&#39;)</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">TwitterWorker</span><span class="o">.</span><span class="n">log</span> <span class="o">+</span> <span class="s1">&#39;Start </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
     <span class="n">esc</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
 </code></pre></div>
         </details>
@@ -1129,7 +1130,7 @@
   <tbody>
       <tr>
         <td><code>location</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the location we want a country for</p></td>
         <td><em>required</em></td>
       </tr>
@@ -1137,7 +1138,7 @@
 </table>
         <details class="quote">
           <summary>Source code in <code>src/twitter_worker.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+          <div class="highlight"><pre><span></span><code><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">geoencode</span><span class="p">(</span><span class="n">location</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;geoencode a location</span>
 
@@ -1150,8 +1151,6 @@
         <span class="n">json_response</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">json_response</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">json_response</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">json_response</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">json_object</span> <span class="o">=</span> <span class="n">json_response</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="c1"># logging.warning(json_object)</span>
-            <span class="c1"># logging.warning(&#39;c &#39; + json_object[&#39;address&#39;][&#39;country_code&#39;])</span>
             <span class="k">if</span> <span class="s1">&#39;address&#39;</span> <span class="ow">in</span> <span class="n">json_object</span> <span class="ow">and</span> <span class="s1">&#39;country_code&#39;</span> <span class="ow">in</span> <span class="n">json_object</span><span class="p">[</span><span class="s1">&#39;address&#39;</span><span class="p">]:</span>
                 <span class="k">return</span> <span class="n">json_object</span><span class="p">[</span><span class="s1">&#39;address&#39;</span><span class="p">][</span><span class="s1">&#39;country_code&#39;</span><span class="p">]</span>
     <span class="k">return</span> <span class="kc">None</span>
@@ -1190,7 +1189,7 @@
   <tbody>
       <tr>
         <td><code>string</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the string to be normalized</p></td>
         <td><em>required</em></td>
       </tr>
@@ -1240,7 +1239,7 @@
   <tbody>
       <tr>
         <td><code>length</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the length to base the score on</p></td>
         <td><em>required</em></td>
       </tr>
@@ -1294,7 +1293,7 @@
   <tbody>
       <tr>
         <td><code>x</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the time to base the score on</p></td>
         <td><em>required</em></td>
       </tr>
@@ -1357,7 +1356,7 @@
   <tbody>
       <tr>
         <td><code>type</code></td>
-        <td><code></code></td>
+        <td></td>
         <td><p>the type to base the score on</p></td>
         <td><em>required</em></td>
       </tr>
@@ -1371,11 +1370,14 @@
 <span class="sd">    Arguments:</span>
 <span class="sd">        type: the type to base the score on</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;quote&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;quoted&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">7</span>
-    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;retweet&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;replied_to&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">9</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;retweeted&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">2</span>
     <span class="c1"># original tweet</span>
+    <span class="c1"># logging.warning(type)</span>
     <span class="k">return</span> <span class="mi">10</span>
 </code></pre></div>
         </details>
@@ -1427,31 +1429,18 @@
         </a>
       
       
-        
-        <a href="../twitter_supervisor_ref/" class="md-footer__link md-footer__link--next" aria-label="Next: twitter supervisor" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              twitter supervisor
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
-          </div>
-        </a>
-      
     </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
       <div class="md-footer-copyright">
         
-        Made with
-        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-          Material for MkDocs
-        </a>
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
         
       </div>
       
@@ -1463,10 +1452,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.409db549.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.8397ff9e.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.756773cc.min.js"></script>
+      <script src="../assets/javascripts/bundle.f89c2efe.min.js"></script>
       
     
   </body>
