@@ -57,14 +57,14 @@ def score_type(type):
         type: the type to base the score on
     """
     if type == 'quoted':
-        return 7
+        return 0.6
     if type == 'replied_to':
-        return 9
+        return 0.7
     if type == 'retweeted':
-        return 2
+        return 0.1
     # original tweet
     # logging.warning(type)
-    return 10
+    return 1
 
 
 def score_length(length):
@@ -193,7 +193,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
                 e.data['subj']['processed']['followers'] = author_data['public_metrics']['followers_count']
 
-                e.data['subj']['processed']['verified'] = 10 if author_data['verified'] else 7
+                e.data['subj']['processed']['verified'] = 10 if author_data['verified'] else 5
                 e.data['subj']['processed']['name'] = author_data['username']
 
                 if 'bot' not in author_data['username'].lower() and 'bot' not in e.data['subj']['data']['source']:
@@ -220,22 +220,22 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
                 user_score += math.log(e.data['subj']['processed']['followers'], 2)
             user_score += e.data['subj']['processed']['verified']
 
-            type_score = score_type(e.data['subj']['processed']['tweet_type'])
+            type_factor = score_type(e.data['subj']['processed']['tweet_type'])
 
             time_score = score_time(e.data['subj']['processed']['time_past'])
 
             # logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
 
             e.data['subj']['processed']['time_score'] = time_score
-            e.data['subj']['processed']['type_score'] = type_score
+            e.data['subj']['processed']['type_factor'] = type_factor
             e.data['subj']['processed']['user_score'] = user_score
             e.data['subj']['processed']['content_score'] = content_score
 
-            weights = {'time': 1, 'type': 1, 'user': 1, 'content': 1}
+            weights = {'time': 3, 'user': 6, 'content': 5}
             e.data['subj']['processed']['score'] = weights['time'] * time_score
-            e.data['subj']['processed']['score'] += weights['type'] * type_score
             e.data['subj']['processed']['score'] += weights['user'] * user_score
             e.data['subj']['processed']['score'] += weights['content'] * content_score
+            e.data['subj']['processed']['score'] *= type_factor
 
             e.set('state', 'processed')
             self.dao.save_discussion_data(e.data)
@@ -248,22 +248,32 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         Arguments:
             value: the value to be normalized
         """
-        if value < 0:
+        if value > 0.9:
+            return 3
+        if value > 0.5:
             return 10
-        if value < 0.7:
+        if value > 0.8:
             return 5
         return 1
 
     @staticmethod
     def normalize_sentiment_value(value):
         """normalize the calculated value from an sentiment comparison
-
+            better sentiment -> better value
         Arguments:
             value: the value to be normalized
         """
-        if value > 0.33:
+        if value > 0.6:
             return 10
+        if value > 0.33:
+            return 9
+        if value > 0.1:
+            return 7
+        if value < -0.1:
+            return 2
         if value < -0.33:
+            return 1
+        if value < -0.6:
             return 0
         return 5
 
