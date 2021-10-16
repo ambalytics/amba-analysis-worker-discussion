@@ -14,7 +14,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.3">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.3">
     
     
       
@@ -696,9 +696,11 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 <span class="sd">    Arguments:</span>
 <span class="sd">        value: the value to be normalized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.9</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">3</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">10</span>
-    <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mf">0.7</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.8</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">5</span>
     <span class="k">return</span> <span class="mi">1</span>
 </code></pre></div>
@@ -724,7 +726,8 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 
     <div class="doc doc-contents ">
 
-      <p>normalize the calculated value from an sentiment comparison</p>
+      <p>normalize the calculated value from an sentiment comparison
+    better sentiment -&gt; better value</p>
 
 <p><strong>Parameters:</strong></p>
 <table>
@@ -750,13 +753,21 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
           <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">normalize_sentiment_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;normalize the calculated value from an sentiment comparison</span>
-
+<span class="sd">        better sentiment -&gt; better value</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        value: the value to be normalized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.33</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.6</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">10</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.33</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">9</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">7</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span>
     <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.33</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">0</span>
     <span class="k">return</span> <span class="mi">5</span>
 </code></pre></div>
@@ -882,7 +893,7 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 
             <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;public_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;followers_count&#39;</span><span class="p">]</span>
 
-            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="k">if</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">7</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="k">if</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">5</span>
             <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span>
 
             <span class="k">if</span> <span class="s1">&#39;bot&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">author_data</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">and</span> <span class="s1">&#39;bot&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;source&#39;</span><span class="p">]:</span>
@@ -909,22 +920,22 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
             <span class="n">user_score</span> <span class="o">+=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;followers&#39;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">user_score</span> <span class="o">+=</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;verified&#39;</span><span class="p">]</span>
 
-        <span class="n">type_score</span> <span class="o">=</span> <span class="n">score_type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">])</span>
+        <span class="n">type_factor</span> <span class="o">=</span> <span class="n">score_type</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;tweet_type&#39;</span><span class="p">])</span>
 
         <span class="n">time_score</span> <span class="o">=</span> <span class="n">score_time</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">])</span>
 
         <span class="c1"># logging.debug(&#39;score %s - %s - %s - %s&#39; % (time_score, type_score, user_score, content_score))</span>
 
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_score</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;type_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_score</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;type_factor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_factor</span>
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;user_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_score</span>
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;content_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_score</span>
 
-        <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">time_score</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">type_score</span>
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">user_score</span>
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">content_score</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">type_factor</span>
 
         <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="s1">&#39;processed&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dao</span><span class="o">.</span><span class="n">save_discussion_data</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
@@ -1371,14 +1382,14 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 <span class="sd">        type: the type to base the score on</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;quoted&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">7</span>
+        <span class="k">return</span> <span class="mf">0.6</span>
     <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;replied_to&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">9</span>
+        <span class="k">return</span> <span class="mf">0.7</span>
     <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;retweeted&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="mf">0.1</span>
     <span class="c1"># original tweet</span>
     <span class="c1"># logging.warning(type)</span>
-    <span class="k">return</span> <span class="mi">10</span>
+    <span class="k">return</span> <span class="mi">1</span>
 </code></pre></div>
         </details>
     </div>
