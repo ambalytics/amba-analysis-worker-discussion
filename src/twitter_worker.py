@@ -241,6 +241,9 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             self.dao.save_discussion_data(e.data)
             self.publish(e)
 
+        else:
+            logging.warning('non twitter event')
+
     @staticmethod
     def normalize_abstract_value(value):
         """normalize the calculated value from an abstract comparison
