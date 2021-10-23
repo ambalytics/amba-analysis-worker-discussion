@@ -80,7 +80,7 @@ def score_length(length):
     return 10
 
 
-@lru_cache(maxsize=10000)
+@lru_cache(maxsize=50000)
 def geoencode(location):
     """geoencode a location
 
@@ -118,12 +118,12 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         Arguments:
             json_msg: the json_msg containing the event to be processed
         """
-        #
+
         if not self.dao:
             self.dao = DAO()
             logging.warning(self.log + " create dao")
 
-        # logging.warning(self.log + "on message twitter consumer")
+        logging.info(self.log + "on message twitter consumer")
 
         e = Event()
         e.from_json(json_msg)
@@ -143,7 +143,6 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
                 if len(split_date) > 2:
                     pub_timestamp = date(int(split_date[0]), int(split_date[1]), int(split_date[2]))
 
-            # todo use date from twitter not today
             e.data['subj']['processed']['time_past'] = (date.today() - pub_timestamp).days
 
             hashtags = []
@@ -224,7 +223,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
             time_score = score_time(e.data['subj']['processed']['time_past'])
 
-            # logging.debug('score %s - %s - %s - %s' % (time_score, type_score, user_score, content_score))
+            logging.info('score %s - %s - %s - %s' % (type_factor, time_score, user_score, content_score))
 
             e.data['subj']['processed']['time_score'] = time_score
             e.data['subj']['processed']['type_factor'] = type_factor
@@ -345,7 +344,9 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         if doc:
             return [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct
                     and not token.is_space and len(token.lemma_) > 2 and not token.lemma_.lower().startswith('http')
-                    and token.lemma_.lower() != 'the'
+                    and token.lemma_.lower() != 'the' and token.lemma_.lower() != 'amp'
+                    and token.lemma_.lower() != 'and' and token.lemma_.lower() != 'pos'
+                    and token.lemma_.lower() != 'bull'
                     and (token.lemma_.isalpha() or token.lemma_.startswith('@'))
                     and (token.pos_ == "NOUN" or token.pos_ == "PROPN" or token.pos_ == "VERB")]
         return []
@@ -369,13 +370,6 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         """start the consumer
         """
         esc = TwitterWorker(i)
-
-        # for key, value in esc.nlp.items():
-        #     if key is 'en':
-        #         esc.nlp['en'] = spacy.load('en_core_web_md')
-        #     else:
-        #         esc.nlp[key] = spacy.load(key + '_core_news_md')
-        #     esc.nlp[key].add_pipe('spacytextblob')
 
         logging.warning(TwitterWorker.log + 'Start %s' % str(i))
         esc.consume()
