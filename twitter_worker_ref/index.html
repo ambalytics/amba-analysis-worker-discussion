@@ -14,7 +14,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.3">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.4">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.5143246d.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.db9e7362.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -818,12 +818,12 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 <span class="sd">    Arguments:</span>
 <span class="sd">        json_msg: the json_msg containing the event to be processed</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#</span>
+
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dao</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dao</span> <span class="o">=</span> <span class="n">DAO</span><span class="p">()</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">+</span> <span class="s2">&quot; create dao&quot;</span><span class="p">)</span>
 
-    <span class="c1"># logging.warning(self.log + &quot;on message twitter consumer&quot;)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">+</span> <span class="s2">&quot;on message twitter consumer&quot;</span><span class="p">)</span>
 
     <span class="n">e</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
     <span class="n">e</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_msg</span><span class="p">)</span>
@@ -843,7 +843,6 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_date</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">pub_timestamp</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_date</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
 
-        <span class="c1"># todo use date from twitter not today</span>
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">pub_timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
 
         <span class="n">hashtags</span> <span class="o">=</span> <span class="p">[]</span>
@@ -924,7 +923,7 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 
         <span class="n">time_score</span> <span class="o">=</span> <span class="n">score_time</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_past&#39;</span><span class="p">])</span>
 
-        <span class="c1"># logging.debug(&#39;score %s - %s - %s - %s&#39; % (time_score, type_score, user_score, content_score))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;score </span><span class="si">%s</span><span class="s1"> - </span><span class="si">%s</span><span class="s1"> - </span><span class="si">%s</span><span class="s1"> - </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">type_factor</span><span class="p">,</span> <span class="n">time_score</span><span class="p">,</span> <span class="n">user_score</span><span class="p">,</span> <span class="n">content_score</span><span class="p">))</span>
 
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;time_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_score</span>
         <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;subj&#39;</span><span class="p">][</span><span class="s1">&#39;processed&#39;</span><span class="p">][</span><span class="s1">&#39;type_factor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_factor</span>
@@ -1090,13 +1089,6 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">esc</span> <span class="o">=</span> <span class="n">TwitterWorker</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
 
-    <span class="c1"># for key, value in esc.nlp.items():</span>
-    <span class="c1">#     if key is &#39;en&#39;:</span>
-    <span class="c1">#         esc.nlp[&#39;en&#39;] = spacy.load(&#39;en_core_web_md&#39;)</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         esc.nlp[key] = spacy.load(key + &#39;_core_news_md&#39;)</span>
-    <span class="c1">#     esc.nlp[key].add_pipe(&#39;spacytextblob&#39;)</span>
-
     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">TwitterWorker</span><span class="o">.</span><span class="n">log</span> <span class="o">+</span> <span class="s1">&#39;Start </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
     <span class="n">esc</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
 </code></pre></div>
@@ -1153,7 +1145,7 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 </table>
         <details class="quote">
           <summary>Source code in <code>src/twitter_worker.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+          <div class="highlight"><pre><span></span><code><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">50000</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">geoencode</span><span class="p">(</span><span class="n">location</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;geoencode a location</span>
 
@@ -1470,7 +1462,7 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
     <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.8397ff9e.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.f89c2efe.min.js"></script>
+      <script src="../assets/javascripts/bundle.1e84347e.min.js"></script>
       
     
   </body>
