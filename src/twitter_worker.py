@@ -253,10 +253,12 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         """
         if value > 0.9:
             return 3
-        if value > 0.5:
-            return 10
         if value > 0.8:
             return 5
+        if value > 0.5:
+            return 10
+        if value > 0.2:
+            return 3
         return 1
 
     @staticmethod
@@ -272,12 +274,12 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
             return 9
         if value > 0.1:
             return 7
-        if value < -0.1:
-            return 2
-        if value < -0.33:
-            return 1
         if value < -0.6:
             return 0
+        if value < -0.33:
+            return 1
+        if value < -0.1:
+            return 2
         return 5
 
     def spacy_process(self, text, abstract, lang):
@@ -340,6 +342,13 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
     @staticmethod
     def process_text_for_similarity(nlp, text):
+        """process a given text after preparing it for language processing first
+        remove certain words, and only allow verbs and nouns, no urls but annotations
+
+        Arguments:
+            nlp: the language processing
+            text: the text
+        """
         doc = nlp(text)
         if doc:
             return [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct
