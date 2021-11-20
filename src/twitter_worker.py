@@ -1,13 +1,13 @@
 import logging
 import math
 import os
-# import sentry_sdk
+import sentry_sdk
 import re
 from datetime import date, datetime
 from functools import lru_cache
 import requests
-# import spacy
-# from spacytextblob.spacytextblob import SpacyTextBlob
+import spacy
+from spacytextblob.spacytextblob import SpacyTextBlob
 from collections import Counter
 
 from event_stream.event_stream_consumer import EventStreamConsumer
