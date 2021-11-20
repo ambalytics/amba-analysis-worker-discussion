@@ -1,6 +1,5 @@
 from ..src import twitter_worker
 
-import mock
 import unittest
 
 
