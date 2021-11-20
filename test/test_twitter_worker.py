@@ -1,4 +1,4 @@
-from ..src import twitter_worker
+from src import twitter_worker
 import unittest
 
 
