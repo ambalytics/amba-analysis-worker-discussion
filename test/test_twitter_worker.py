@@ -1,9 +1,8 @@
 from ..src import twitter_worker
-
 import unittest
 
 
-class TwitterWorkerTestCase(unittest.TestCase):
+class TestTwitterWorker(unittest.TestCase):
 
     def test_normalize_sentiment_value(self):
         self.assertEqual(twitter_worker.TwitterWorker.normalize_sentiment_value(1), 10)
