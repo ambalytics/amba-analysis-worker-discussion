@@ -10,6 +10,7 @@ The total tweet score is a weighted sum of part scores multiplied by a factor ge
 
 The second-biggest factor in the impact of a tweet, and therefore the highest weighted, is the tweet author itself. The number of followers that can see the tweet, whether they are verified or not, and the bot detection is significant for the author’s scoring. Details to each of the individual scoring can be seen in Table [2][].
 
+  [1]: #tab:twitter-worker-scores1
 <div id="tab:twitter-worker-scores1">
 
 | Type Factor |     | Score Abstract Similarity |     | Score Sentiment |     |                                  Followers |
@@ -28,9 +29,7 @@ Meta Score Calculation
 
 The tweet content is essential for scoring as well. In order to generate a content score, the length, sentiment, and percentage of abstract matching of the tweet are considered. Sentiment and Abstract similarity are calculated using the *Spacy framework* with eight language packages (de, es, en, fr, ja, it, ru, pl). In the case of unknown languages, neutral values are returned. Further text preprocessing is done to improve results and performance. Therefore, all stop words, short words with less than three letters, URLs, and words neither a Noun, Propn (proper Noun), or Verb are removed. The sentiment varying between 1 (positive) and -1 (negative) is linearly in buckets over proportional, favoring a positive sentiment. The abstract similarity is a bit more complicated to score. While a high value is bad since it is not adding anything, a low value indicates that the tweet content is likely not about the publication content. The length scoring bucketing is in three main buckets; one is just a link or a few words, the second is a sentence max, and the last requires a few words. Exact values can be seen in Table seen in Table [1][].
 
-  [1]: #tab:twitter-worker-scores1
   [2]: #tab:twitter-worker-scores2
-
 <div id="tab:twitter-worker-scores2">
 
 | Score Length |     |                      Score Time | Score Bot |     | Score Verified |     |
