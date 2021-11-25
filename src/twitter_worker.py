@@ -39,14 +39,12 @@ def score_time(x):
         try:
             y = (math.log(x) / math.log(1 / 7) + 3) * 10
         except ValueError:
-            logging.warning('ValueError %s' % str(x))
+            logging.debug('ValueError %s' % str(x))
         if y > 30:
             return 30
         if y < 1:
             return 1
         return y
-    # else:
-    # logging.warning('missing x')
     return 1
 
 
@@ -63,7 +61,6 @@ def score_type(type):
     if type == 'retweeted':
         return 0.1
     # original tweet
-    # logging.warning(type)
     return 1
 
 
@@ -110,6 +107,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
         'de': None, 'es': None, 'en': None, 'fr': None, 'ja': None, 'it': None, 'ru': None, 'pl': None
     }
     process_number = 1
+    throughput_statistics_running = True
 
     dao = None
 
@@ -136,7 +134,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
             pub_timestamp = date(2012, 1, 1)
             if 'year' in e.data['obj']['data']:
-                pub_timestamp = date(e.data['obj']['data']['year'], 1, 1)
+                pub_timestamp = date(int(e.data['obj']['data']['year']), 1, 1)
 
             if 'pub_date' in e.data['obj']['data'] and e.data['obj']['data']['pub_date']:
                 split_date = e.data['obj']['data']['pub_date'].split('-')
