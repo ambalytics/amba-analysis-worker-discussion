@@ -236,7 +236,7 @@ class TwitterWorker(EventStreamConsumer, EventStreamProducer):
 
             e.set('state', 'processed')
             self.dao.save_discussion_data(e.data)
-            logging.warning('publish ' + e.data['obj']['data']['doi'])
+            logging.debug('publish ' + e.data['obj']['data']['doi'])
             self.publish(e)
 
         else:
