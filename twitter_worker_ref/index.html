@@ -953,7 +953,7 @@ TwitterWorker            (<span title="event_stream.event_stream_consumer.EventS
 
         <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="s1">&#39;processed&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dao</span><span class="o">.</span><span class="n">save_discussion_data</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;publish &#39;</span> <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;doi&#39;</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;publish &#39;</span> <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obj&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;doi&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
